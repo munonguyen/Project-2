@@ -6,10 +6,10 @@ import com.devon.building.enums.RentType;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
-import com.devon.building.repository.BuildingRepository;
 import com.devon.building.service.BuildingService;
 import com.devon.building.service.UserService;
 import com.devon.building.converter.BuildingConverter;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +27,6 @@ import static com.devon.building.constant.SystemConstant.RENT_TYPE;
 public class BuildingController {
 
     private final UserService userService;
-    private final BuildingRepository buildingRepository;
     private final BuildingConverter buildingConverter;
     private final BuildingService buildingService;
 
@@ -57,12 +56,12 @@ public class BuildingController {
         ModelAndView modelAndView = new ModelAndView("admin/building/buildingEdit");
         modelAndView.addObject(DISTRICT, District.getDistrictMap());
         modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
-        Building building = buildingRepository.findById(id).orElse(null);
-        if (building == null) {
+        try {
+            Building building = buildingService.findById(id);
+            modelAndView.addObject("building", buildingConverter.toBuildingDTO(building));
+        } catch (EntityNotFoundException e) {
             modelAndView.setViewName("redirect:/admin/buildings/list");
-            return modelAndView;
         }
-        modelAndView.addObject("building", buildingConverter.toBuildingDTO(building));
         return modelAndView;
     }
 }

@@ -53,7 +53,7 @@ public class BuildingAPI {
             return ResponseEntity.badRequest().body(responseDTO);
         }
         if(buildingDTO.getId() == null){
-            responseDTO.setMessage("Phải cung cấp ID tòa nhà để cập nhật");
+            responseDTO.setMessage("Phải chọn tòa nhà cần cập nhật");
             return ResponseEntity.badRequest().body(responseDTO);
         }
         Building savedBuilding = buildingService.saveBuilding(buildingDTO);
