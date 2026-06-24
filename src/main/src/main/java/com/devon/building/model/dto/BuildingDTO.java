@@ -53,6 +53,7 @@ public class BuildingDTO {
 
     Long level;
 
+    @NotBlank(message="Diện tích thuê không được để trống", groups = Create.class)
     String rentArea;
 
     @NotEmpty(message="Mã loại tòa nhà là bắt buộc", groups = Create.class)

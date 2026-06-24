@@ -736,6 +736,7 @@
         "numberOfBasement",
         "floorArea",
         "level",
+        "rentArea",
         "rentPrice",
         "brokerageFee",
       ];
@@ -785,6 +786,10 @@
         }
         if (isBlank(data["rentPrice"])) {
           showErrorMessage("noRentPrice");
+          isValid = false;
+        }
+        if (isBlank(data["rentArea"])) {
+          showErrorMessage("noRentArea");
           isValid = false;
         }
         if (
