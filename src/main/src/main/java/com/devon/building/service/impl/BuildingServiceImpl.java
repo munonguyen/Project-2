@@ -5,6 +5,7 @@ import com.devon.building.constant.SystemConstant;
 import com.devon.building.converter.BuildingConverter;
 import com.devon.building.entity.Building;
 import com.devon.building.entity.User;
+import com.devon.building.matcher.BuildingSearchMatcher;
 import com.devon.building.model.dto.AssignBuildingDTO;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.Request.BuildingSearchRequest;
@@ -33,6 +34,7 @@ public class BuildingServiceImpl implements BuildingService {
         private final UserRepository userRepository;
         private final BuildingConverter buildingConverter;
         private final BuildingValidator buildingValidator;
+        private final BuildingSearchMatcher buildingSearchMatcher;
 
         @Override
         public ResponseDTO loadStaffs(Long buildingId) {
@@ -62,7 +64,7 @@ public class BuildingServiceImpl implements BuildingService {
         public List<BuildingSearchResponse> getAllBuildings(BuildingSearchRequest buildingSearchRequest) {
                 return buildingRepository.findAll()
                                 .stream()
-                                .filter(buildingSearchRequest::matches)
+                                .filter(building -> buildingSearchMatcher.matches(building, buildingSearchRequest))
                                 .map(buildingConverter::toBuildingSearchResponse)
                                 .toList();
 
