@@ -2,7 +2,6 @@ package com.devon.building.service.impl;
 
 import com.devon.building.constant.SystemConstant;
 import com.devon.building.converter.BuildingConverter;
-import com.devon.building.entity.AssignmentBuilding;
 import com.devon.building.entity.Building;
 import com.devon.building.entity.RentArea;
 import com.devon.building.entity.User;
@@ -13,7 +12,6 @@ import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.ResponseDTO;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
 import com.devon.building.model.dto.response.StaffResponseDTO;
-import com.devon.building.repository.AssignmentBuildingRepository;
 import com.devon.building.repository.BuildingRepository;
 import com.devon.building.repository.RentAreaRepository;
 import com.devon.building.repository.UserRepository;
@@ -35,7 +33,6 @@ public class BuildingServiceImpl implements BuildingService {
 
     private final BuildingRepository buildingRepository;
     private final RentAreaRepository rentAreaRepository;
-    private final AssignmentBuildingRepository assignmentBuildingRepository;
     private final UserRepository userRepository;
     private final BuildingConverter buildingConverter;
     private final BuildingSearchMatcher buildingSearchMatcher;
@@ -43,24 +40,23 @@ public class BuildingServiceImpl implements BuildingService {
     @Override
     public ResponseDTO loadStaffs(Long buildingId) {
         ResponseDTO responseDTO = new ResponseDTO();
-        List<User> staffs = userRepository.findAllByUserRoleAndActiveTrue(SystemConstant.STAFF_ROLE);
 
-        List<AssignmentBuilding> assignments = assignmentBuildingRepository.findByBuildingId(buildingId);
-        Set<Long> assignedStaffs = assignments.stream()
-                .map(a -> a.getStaff().getId())
-                .collect(Collectors.toSet());
-
+        List<User> staffs = userRepository.findAllByUserRoleAndActiveTrue(SystemConstant.STAFF_ROLE); //get All staffs
+        Building building = buildingRepository.findById(buildingId).orElseThrow(() -> new EntityNotFoundException(""));
+        Set<Long> assignedStaffs = building.getStaffs().stream().map(User::getId).collect(Collectors.toSet()); // Lay danh sach id cac nhan vien dang quan ly toa nha hien tai
         List<StaffResponseDTO> staffResponseDTOS = new ArrayList<>();
         for (User user : staffs) {
             StaffResponseDTO staffResponseDTO = new StaffResponseDTO();
             staffResponseDTO.setId(user.getId());
             staffResponseDTO.setUserName(user.getUserName());
-            staffResponseDTO.setChecked(assignedStaffs.contains(user.getId()) ? "checked" : "");
+            staffResponseDTO.setChecked("");
+            if(assignedStaffs.contains(user.getId())) {
+                staffResponseDTO.setChecked("checked");
+            }
             staffResponseDTOS.add(staffResponseDTO);
         }
-
         responseDTO.setData(staffResponseDTOS);
-        responseDTO.setMessage("Tải danh sách nhân viên thành công");
+        responseDTO.setMessage("Load staff list successfully");
         return responseDTO;
     }
 
@@ -108,7 +104,6 @@ public class BuildingServiceImpl implements BuildingService {
         if (ids != null && !ids.isEmpty()) {
             for (Long id : ids) {
                 rentAreaRepository.deleteByBuildingId(id);
-                assignmentBuildingRepository.deleteByBuildingId(id);
             }
             buildingRepository.deleteAllById(ids);
         }
@@ -120,19 +115,16 @@ public class BuildingServiceImpl implements BuildingService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Không tìm thấy tòa nhà có ID " + assignBuildingDTO.getBuildingId()));
 
-        assignmentBuildingRepository.deleteByBuildingId(building.getId());
-
-        if (assignBuildingDTO.getStaffIds() != null) {
+        if (assignBuildingDTO.getStaffIds() != null && !assignBuildingDTO.getStaffIds().isEmpty()) {
             List<User> staffs = userRepository.findAllById(assignBuildingDTO.getStaffIds());
-            List<AssignmentBuilding> assignments = new ArrayList<>();
-            for (User staff : staffs) {
-                AssignmentBuilding assignment = new AssignmentBuilding();
-                assignment.setBuilding(building);
-                assignment.setStaff(staff);
-                assignments.add(assignment);
+            building.setStaffs(staffs);
+        } else {
+            if (building.getStaffs() != null) {
+                building.getStaffs().clear();
             }
-            assignmentBuildingRepository.saveAll(assignments);
         }
+        
+        buildingRepository.save(building);
 
         return building;
     }

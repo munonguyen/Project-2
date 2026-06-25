@@ -130,8 +130,11 @@ public class Building implements Serializable {
     @Column(name = "modifiedby")
     private String modifiedBy;
 
-    @OneToMany(mappedBy = "building")
-    private List<AssignmentBuilding> assignmentBuildings = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "assignmentbuilding", 
+               joinColumns = @JoinColumn(name = "buildingid"), 
+               inverseJoinColumns = @JoinColumn(name = "staffid"))
+    private List<User> staffs = new ArrayList<>();
 
     @OneToMany(mappedBy = "building")
     private List<RentArea> rentAreas = new ArrayList<>();
