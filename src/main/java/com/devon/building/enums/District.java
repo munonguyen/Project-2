@@ -4,14 +4,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public enum District {
-    QUAN_1("Quan 1"),
-    QUAN_2("Quan 2"),
-    QUAN_3("Quan 3"),
-    QUAN_4("Quan 4"),
-    QUAN_5("Quan 5"),
-    QUAN_10("Quan 10"),
-    QUAN_11("Quan 11"),
-    QUAN_12("Quan 12"),
+    QUAN_1("Quận 1"),
+    QUAN_2("Quận 2"),
+    QUAN_3("Quận 3"),
+    QUAN_4("Quận 4"),
+    QUAN_5("Quận 5"),
+    QUAN_10("Quận 10"),
+    QUAN_11("Quận 11"),
+    QUAN_12("Quận 12"),
     ;
 
     private final String districtName;

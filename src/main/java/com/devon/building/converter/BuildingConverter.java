@@ -187,30 +187,6 @@ public class BuildingConverter {
         if (dto.getUploadImage() != null && !dto.getUploadImage().isBlank()) {
             building.setImage(toImageBytes(dto.getUploadImage()));
         }
-        if (!merge || dto.getRentArea() != null) {
-            updateRentAreas(dto, building);
-        }
-    }
-
-    private void updateRentAreas(BuildingDTO dto, Building building) {
-        if (building.getRentAreas() == null) {
-            building.setRentAreas(new ArrayList<>());
-        }
-        building.getRentAreas().clear();
-        if (dto.getRentArea() == null || dto.getRentArea().isBlank()) {
-            return;
-        }
-        Arrays.stream(dto.getRentArea().split(","))
-                .map(String::trim)
-                .filter(value -> !value.isEmpty())
-                .map(Long::parseLong)
-                .forEach(value -> {
-                    RentArea rentArea = new RentArea();
-                    rentArea.setValue(value);
-                    rentArea.setBuilding(building);
-                    rentArea.setCreatedDate(LocalDate.now());
-                    building.getRentAreas().add(rentArea);
-                });
     }
 
     private String buildRentArea(Building building) {

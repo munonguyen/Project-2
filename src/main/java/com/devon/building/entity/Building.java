@@ -79,6 +79,33 @@ public class Building implements Serializable {
     @Column(name = "note", length = 255)
     private String note;
 
+    @Column(name = "motofee", length = 255)
+    private String motoFee;
+
+    @Column(name = "waterfee", length = 255)
+    private String waterFee;
+
+    @Column(name = "electricityfee", length = 255)
+    private String electricityFee;
+
+    @Column(name = "deposit", length = 255)
+    private String deposit;
+
+    @Column(name = "payment", length = 255)
+    private String payment;
+
+    @Column(name = "renttime", length = 255)
+    private String rentTime;
+
+    @Column(name = "decorationtime", length = 255)
+    private String decorationTime;
+
+    @Column(name = "linkofbuilding", length = 255)
+    private String linkOfBuilding;
+
+    @Column(name = "map", length = 255)
+    private String map;
+
     @Column(name = "managername", length = 255)
     private String managerName;
 
@@ -93,14 +120,20 @@ public class Building implements Serializable {
     @Column(name = "createddate")
     private Date createDate;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "assignmentbuilding",
-            joinColumns = @JoinColumn(name = "buildingid", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "staffid", referencedColumnName = "id")
-    )
-    private List<User> user = new ArrayList<>();
-    @OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "modifieddate")
+    private Date modifiedDate;
+
+    @Column(name = "createdby")
+    private String createdBy;
+
+    @Column(name = "modifiedby")
+    private String modifiedBy;
+
+    @OneToMany(mappedBy = "building")
+    private List<AssignmentBuilding> assignmentBuildings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "building")
     private List<RentArea> rentAreas = new ArrayList<>();
 
 

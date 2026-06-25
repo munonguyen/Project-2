@@ -1,0 +1,15 @@
+package com.devon.building.repository;
+
+import com.devon.building.entity.RentArea;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface RentAreaRepository extends JpaRepository<RentArea, Long> {
+
+    @Modifying
+    @Query("DELETE FROM RentArea r WHERE r.building.id = ?1")
+    void deleteByBuildingId(Long buildingId);
+}

@@ -40,14 +40,12 @@ public class BuildingController {
         modelAndView.addObject("buildingList", result);
         return modelAndView;
     }
-
     @GetMapping("/edit")
     public ModelAndView getEditbuilding() {
         ModelAndView modelAndView = new ModelAndView("admin/building/buildingEdit");
         modelAndView.addObject(DISTRICT, District.getDistrictMap());
         modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
         modelAndView.addObject("building", new BuildingDTO());
-
         return modelAndView;
     }
 

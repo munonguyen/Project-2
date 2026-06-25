@@ -360,7 +360,7 @@
                                 type="text"
                                 id="rentArea"
                                 name="rentArea"
-	                                placeholder="Nhập diện tích thuê"
+	                                placeholder="VD: 100,200,300"
 	                                th:value="${building.rentArea}"
 	                                class="form-control"
 	                              />
@@ -369,6 +369,12 @@
                                 id="noRentArea"
                                 style="display: none; color: red"
                                 >Vui lòng nhập diện tích thuê</span
+                              >
+                              <span
+                                class="error-message"
+                                id="invalidRentArea"
+                                style="display: none; color: red"
+                                >Diện tích thuê không hợp lệ (VD: 100,200,300)</span
                               >
                             </div>
                           </div>
@@ -741,6 +747,7 @@
         "brokerageFee",
       ];
       const managerPhoneNumberPattern = /^\d{10}$/;
+      const rentAreaPattern = /^\d+(,\d+)*$/;
 
       function hideErrorMessages() {
         const errorMessages = document.querySelectorAll(".error-message");
@@ -791,6 +798,9 @@
         if (isBlank(data["rentArea"])) {
           showErrorMessage("noRentArea");
           isValid = false;
+        } else if (!rentAreaPattern.test(data["rentArea"].replace(/\s/g, ''))) {
+          showErrorMessage("invalidRentArea");
+          isValid = false;
         }
         if (
           !isBlank(data["managerPhoneNumber"]) &&
@@ -826,12 +836,9 @@
           data["uploadImage"] = uploadImage;
         }
         const isUpdate = !isBlank(data["id"]);
-        if (!isUpdate && !validateData(data)) {
+        if (!validateData(data)) {
           alert("Vui lòng điền đầy đủ thông tin bắt buộc");
           return;
-        }
-        if (isUpdate) {
-          hideErrorMessages();
         }
         if (!isUpdate && isBlank(data["managerPhoneNumber"])) {
           data["managerPhoneNumber"] = null;

@@ -26,7 +26,8 @@ public class UserAPI {
         ResponseDTO responseDTO = new ResponseDTO();
         try {
             if (bindingResult.hasErrors()) {
-                List<String> errorMessages = bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage).collect(Collectors.toList());
+                List<String> errorMessages = bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage)
+                        .collect(Collectors.toList());
 
                 responseDTO.setMessage("Dữ liệu không hợp lệ");
                 responseDTO.setDetail(errorMessages);
@@ -46,7 +47,8 @@ public class UserAPI {
         ResponseDTO responseDTO = new ResponseDTO();
         try {
             if (bindingResult.hasErrors()) {
-                List<String> errorMessages = bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage).collect(Collectors.toList());
+                List<String> errorMessages = bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage)
+                        .collect(Collectors.toList());
 
                 responseDTO.setMessage("Dữ liệu không hợp lệ");
                 responseDTO.setDetail(errorMessages);
