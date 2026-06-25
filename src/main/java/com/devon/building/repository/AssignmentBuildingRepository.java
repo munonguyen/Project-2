@@ -13,7 +13,5 @@ public interface AssignmentBuildingRepository extends JpaRepository<AssignmentBu
 
     List<AssignmentBuilding> findByBuildingId(Long buildingId);
 
-    @Modifying
-    @Query("DELETE FROM AssignmentBuilding a WHERE a.building.id = ?1")
     void deleteByBuildingId(Long buildingId);
 }

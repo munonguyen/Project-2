@@ -33,4 +33,18 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException e) {
+        ResponseDTO errorResponse = new ResponseDTO();
+        errorResponse.setMessage("Dữ liệu đầu vào không hợp lệ (Ví dụ: File ảnh bị lỗi định dạng)");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolationException(org.springframework.dao.DataIntegrityViolationException e) {
+        ResponseDTO errorResponse = new ResponseDTO();
+        errorResponse.setMessage("Không thể thực hiện thao tác do dữ liệu đang được liên kết (VD: đang nằm trong Đơn Hàng)!");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
 }

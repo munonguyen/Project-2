@@ -15,8 +15,6 @@ import java.util.List;
 public class BuildingDTO {
     static final long serialVersionUID = 1L;
 
-    public interface Create {
-    }
 
     Long id;
 

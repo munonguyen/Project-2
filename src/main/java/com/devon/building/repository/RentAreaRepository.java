@@ -9,7 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RentAreaRepository extends JpaRepository<RentArea, Long> {
 
-    @Modifying
-    @Query("DELETE FROM RentArea r WHERE r.building.id = ?1")
     void deleteByBuildingId(Long buildingId);
 }
