@@ -204,15 +204,9 @@
                     alert(res.message);
                     window.location.reload();
                 },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    const responseJson = jqXHR.responseJSON || {};
-                    const details = responseJson.details || responseJson.detail;
-                    if (details && details.length > 0) {
-                        alert(details.join("\\n"));
-                    } else {
-                        alert(responseJson.message || "Lỗi cập nhật người dùng!");
-                    }
-                    console.log(jqXHR);
+                error: function (res) {
+                    alert("Lỗi update");
+                    console.log(res);
                 }
             });
         }
