@@ -5,6 +5,7 @@ import com.devon.building.model.dto.ResponseDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -37,6 +38,16 @@ public class GlobalException {
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException e) {
         ResponseDTO errorResponse = new ResponseDTO();
         errorResponse.setMessage("Dữ liệu đầu vào không hợp lệ (Ví dụ: File ảnh bị lỗi định dạng)");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Object> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        ResponseDTO errorResponse = new ResponseDTO();
+        errorResponse.setMessage("ID không hợp lệ");
+        List<String> details = new ArrayList<>();
+        details.add("Giá trị '" + e.getValue() + "' không đúng định dạng số");
+        errorResponse.setDetail(details);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 

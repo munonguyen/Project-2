@@ -1,7 +1,9 @@
 package com.devon.building.service.impl;
 
+import com.devon.building.CustomException.DataBuildingInvalidException;
 import com.devon.building.constant.SystemConstant;
 import com.devon.building.converter.BuildingConverter;
+import com.devon.building.entity.AssignmentBuilding;
 import com.devon.building.entity.Building;
 import com.devon.building.entity.RentArea;
 import com.devon.building.entity.User;
@@ -12,6 +14,7 @@ import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.ResponseDTO;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
 import com.devon.building.model.dto.response.StaffResponseDTO;
+import com.devon.building.repository.AssignmentBuildingRepository;
 import com.devon.building.repository.BuildingRepository;
 import com.devon.building.repository.RentAreaRepository;
 import com.devon.building.repository.UserRepository;
@@ -22,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,6 +37,7 @@ import java.util.stream.Collectors;
 public class BuildingServiceImpl implements BuildingService {
 
     private final BuildingRepository buildingRepository;
+    private final AssignmentBuildingRepository assignmentBuildingRepository;
     private final RentAreaRepository rentAreaRepository;
     private final UserRepository userRepository;
     private final BuildingConverter buildingConverter;
@@ -42,8 +48,14 @@ public class BuildingServiceImpl implements BuildingService {
         ResponseDTO responseDTO = new ResponseDTO();
 
         List<User> staffs = userRepository.findAllByUserRoleAndActiveTrue(SystemConstant.STAFF_ROLE); //get All staffs
-        Building building = buildingRepository.findById(buildingId).orElseThrow(() -> new EntityNotFoundException(""));
-        Set<Long> assignedStaffs = building.getStaffs().stream().map(User::getId).collect(Collectors.toSet()); // Lay danh sach id cac nhan vien dang quan ly toa nha hien tai
+        Building building = buildingRepository.findById(buildingId)
+                .orElseThrow(() -> new DataBuildingInvalidException(
+                        "Không tìm thấy tòa nhà có ID " + buildingId));
+        Set<Long> assignedStaffs = building.getAssignmentBuildings().stream()
+                .map(AssignmentBuilding::getStaff)
+                .filter(Objects::nonNull)
+                .map(User::getId)
+                .collect(Collectors.toSet()); // Lay danh sach id cac nhan vien dang quan ly toa nha hien tai
         List<StaffResponseDTO> staffResponseDTOS = new ArrayList<>();
         for (User user : staffs) {
             StaffResponseDTO staffResponseDTO = new StaffResponseDTO();
@@ -101,11 +113,14 @@ public class BuildingServiceImpl implements BuildingService {
 
     @Override
     public void deleteBuilding(List<Long> ids) {
-        if (ids != null && !ids.isEmpty()) {
-            for (Long id : ids) {
+        List<Long> buildingIds = normalizeIds(ids, "Danh sách ID tòa nhà");
+        if (!buildingIds.isEmpty()) {
+            validateBuildingsExist(buildingIds);
+            for (Long id : buildingIds) {
+                assignmentBuildingRepository.deleteByBuildingId(id);
                 rentAreaRepository.deleteByBuildingId(id);
             }
-            buildingRepository.deleteAllById(ids);
+            buildingRepository.deleteAllById(buildingIds);
         }
     }
 
@@ -115,17 +130,18 @@ public class BuildingServiceImpl implements BuildingService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Không tìm thấy tòa nhà có ID " + assignBuildingDTO.getBuildingId()));
 
-        if (assignBuildingDTO.getStaffIds() != null && !assignBuildingDTO.getStaffIds().isEmpty()) {
-            List<User> staffs = userRepository.findAllById(assignBuildingDTO.getStaffIds());
-            building.setStaffs(staffs);
-        } else {
-            if (building.getStaffs() != null) {
-                building.getStaffs().clear();
-            }
-        }
-        
-        buildingRepository.save(building);
+        List<Long> staffIds = normalizeIds(assignBuildingDTO.getStaffIds(), "Danh sách ID nhân viên");
+        List<User> staffs = findAssignableStaffs(staffIds);
 
+        List<AssignmentBuilding> assignments = new ArrayList<>();
+        for (User staff : staffs) {
+            assignments.add(new AssignmentBuilding(building, staff));
+        }
+
+        assignmentBuildingRepository.deleteByBuildingId(building.getId());
+        if (!assignments.isEmpty()) {
+            assignmentBuildingRepository.saveAll(assignments);
+        }
         return building;
     }
 
@@ -148,5 +164,59 @@ public class BuildingServiceImpl implements BuildingService {
         if (!newRentAreas.isEmpty()) {
             rentAreaRepository.saveAll(newRentAreas);
         }
+    }
+
+    private List<Long> normalizeIds(List<Long> ids, String fieldName) {
+        if (ids == null) {
+            return Collections.emptyList();
+        }
+        if (ids.stream().anyMatch(Objects::isNull)) {
+            throw new DataBuildingInvalidException(fieldName + " không hợp lệ");
+        }
+        return ids.stream().distinct().toList();
+    }
+
+    private void validateBuildingsExist(List<Long> buildingIds) {
+        Set<Long> existingIds = buildingRepository.findAllById(buildingIds).stream()
+                .map(Building::getId)
+                .collect(Collectors.toSet());
+        List<Long> missingIds = buildingIds.stream()
+                .filter(id -> !existingIds.contains(id))
+                .toList();
+        if (!missingIds.isEmpty()) {
+            throw new EntityNotFoundException("Không tìm thấy tòa nhà có ID " + formatIds(missingIds));
+        }
+    }
+
+    private List<User> findAssignableStaffs(List<Long> staffIds) {
+        if (staffIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<User> staffs = userRepository.findAllById(staffIds);
+        Set<Long> foundStaffIds = staffs.stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+        List<Long> missingStaffIds = staffIds.stream()
+                .filter(id -> !foundStaffIds.contains(id))
+                .toList();
+        if (!missingStaffIds.isEmpty()) {
+            throw new DataBuildingInvalidException("Không tìm thấy nhân viên có ID " + formatIds(missingStaffIds));
+        }
+
+        List<Long> invalidStaffIds = staffs.stream()
+                .filter(staff -> !staff.isActive() || !SystemConstant.STAFF_ROLE.equals(staff.getUserRole()))
+                .map(User::getId)
+                .toList();
+        if (!invalidStaffIds.isEmpty()) {
+            throw new DataBuildingInvalidException("Nhân viên không hợp lệ có ID " + formatIds(invalidStaffIds));
+        }
+        return staffs;
+    }
+
+    private String formatIds(List<Long> ids) {
+        return ids.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
     }
 }

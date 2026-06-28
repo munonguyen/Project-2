@@ -12,7 +12,6 @@ import java.util.List;
 @Setter
 public class AssignBuildingDTO {
     @NotNull(message="Không tìm thấy toà nhà")
-    @JsonAlias("building")
     private Long buildingId;
     private List<Long> staffIds = new ArrayList<>();
 
