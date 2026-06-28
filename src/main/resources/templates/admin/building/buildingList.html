@@ -582,13 +582,13 @@
           alert("Không tìm thấy tòa nhà");
           return;
         }
-        const staffId = [];
+        const staffIds = [];
         $('#staffList tbody input[type="checkbox"]:checked').each(function () {
-          staffId.push($(this).val());
+          staffIds.push($(this).val());
         });
         const json = {};
-        json.building = buildingId;
-        json.staffIds = staffId;
+        json.buildingId = buildingId;
+        json.staffIds = staffIds;
         sendRequestAssignmentBuilding(json);
       }
 
