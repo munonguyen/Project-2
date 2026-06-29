@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "User")
@@ -48,9 +50,13 @@ public class User extends BaseEntity implements Serializable{
     @Column(name = "phone", length = 10)
     private String phone;
 
+
     @Lob
     @Column(name = "image", length = Integer.MAX_VALUE, nullable = true)
     private byte[] image;
+
+    @OneToMany(mappedBy="user",fetch = FetchType.LAZY)
+    private List<AssignmentBuilding>  assignmentBuildings = new ArrayList<>();
 
     public User(Long id, String userName, Boolean active, String userRole, String fullName, String phone) {
         this.id = id;

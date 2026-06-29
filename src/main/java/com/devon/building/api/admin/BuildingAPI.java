@@ -4,9 +4,9 @@ import com.devon.building.entity.Building;
 import com.devon.building.model.dto.AssignBuildingDTO;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.ResponseDTO;
+import com.devon.building.service.AssignmentBuildingService;
 import com.devon.building.service.BuildingService;
 import jakarta.validation.Valid;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -18,14 +18,16 @@ import java.util.List;
 public class BuildingAPI {
 
     private final BuildingService buildingService;
+    private final AssignmentBuildingService assignmentBuildingService;
 
-    public BuildingAPI(BuildingService buildingService) {
+    public BuildingAPI(BuildingService buildingService, AssignmentBuildingService assignmentBuildingService) {
         this.buildingService = buildingService;
+        this.assignmentBuildingService = assignmentBuildingService;
     }
 
     @GetMapping("/{id}/staffs")
     public ResponseEntity<ResponseDTO> loadStaffs(@PathVariable Long id) {
-        return ResponseEntity.ok().body(buildingService.loadStaffs(id));
+        return ResponseEntity.ok().body(assignmentBuildingService.loadStaffs(id));
     }
 
     @PostMapping
@@ -104,7 +106,7 @@ public class BuildingAPI {
             return ResponseEntity.badRequest().body(response);
         }
 
-        Building savedAssignBuilding = buildingService.saveAssignBuilding(assignBuildingDTO);
+        Building savedAssignBuilding = assignmentBuildingService.saveAssignBuilding(assignBuildingDTO);
         response.setMessage("Giao tòa nhà thành công");
         response.setData(savedAssignBuilding.getId());
         return ResponseEntity.ok().body(response);
