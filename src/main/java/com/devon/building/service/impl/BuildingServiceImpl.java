@@ -3,6 +3,7 @@ package com.devon.building.service.impl;
 import com.devon.building.exception.DataBuildingInvalidException;
 import com.devon.building.converter.BuildingConverter;
 import com.devon.building.entity.Building;
+import com.devon.building.matcher.BuildingSearchMatcher;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
@@ -26,12 +27,14 @@ public class BuildingServiceImpl implements BuildingService {
 
     private final BuildingRepository buildingRepository;
     private final BuildingConverter buildingConverter;
+    private final BuildingSearchMatcher buildingSearchMatcher;
     private final AssignmentBuildingService assignmentBuildingService;
     private final RentAreaService rentAreaService;
 
     @Override
     public List<BuildingSearchResponse> getAllBuildings(BuildingSearchRequest buildingSearchRequest) {
-        return buildingRepository.searchBuildings(buildingSearchRequest).stream()
+        return buildingRepository.findAll().stream()
+                .filter(building -> buildingSearchMatcher.matches(building, buildingSearchRequest))
                 .map(buildingConverter::toBuildingSearchResponse)
                 .toList();
     }
