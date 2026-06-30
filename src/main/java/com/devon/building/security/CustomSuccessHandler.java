@@ -50,10 +50,10 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     private boolean isAdmin(List<String> roles) {
-        return roles.stream().anyMatch(role -> role.startsWith(SystemConstant.MANAGER_ROLE) || role.startsWith(SystemConstant.STAFF_ROLE));
+        return roles.stream().anyMatch(role -> role.startsWith("ROLE_" + SystemConstant.MANAGER_ROLE) || role.startsWith("ROLE_" + SystemConstant.STAFF_ROLE));
     }
 
     private boolean isUser(List<String> roles) {
-        return roles.contains(SystemConstant.USER_ROLE);
+        return roles.contains("ROLE_" + SystemConstant.USER_ROLE);
     }
 }

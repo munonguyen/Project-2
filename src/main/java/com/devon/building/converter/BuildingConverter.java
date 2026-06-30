@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,6 +26,8 @@ public class BuildingConverter {
         BuildingSearchResponse response = modelMapper.map(building, BuildingSearchResponse.class);
         response.setAddress(buildAddress(building));
         response.setRentArea(buildRentArea(building));
+        response.setRentPrice((long) building.getPrice());
+        response.setManagerPhoneNumber(building.getManagerPhoneNumber());
         if (building.getBrokerageFee() != null) {
             response.setBrokerageFee(building.getBrokerageFee().doubleValue());
         }
@@ -40,6 +41,7 @@ public class BuildingConverter {
     public BuildingDTO toBuildingDTO(Building building) {
         BuildingDTO dto = modelMapper.map(building, BuildingDTO.class);
         dto.setDistrictId(building.getDistrict());
+        dto.setRentPrice((long) building.getPrice());
         dto.setRentArea(buildRentArea(building));
         dto.setTypeCode(splitTypeCode(building.getType()));
         if (building.getImage() != null && building.getImage().length > 0) {

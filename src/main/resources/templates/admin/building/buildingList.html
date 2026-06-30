@@ -230,13 +230,13 @@
                               />
                             </div>
                             <div class="col-xs-5">
-                              <label for="managePhoneNumber">SĐT quản lí</label>
+                              <label for="managerPhoneNumber">SĐT quản lí</label>
                               <input
                                 type="text"
-                                id="managePhoneNumber"
-                                name="managePhoneNumber"
+                                id="managerPhoneNumber"
+                                name="managerPhoneNumber"
                                 class="form-control"
-                                th:value="${buildingSearchRequest.managePhoneNumber}"
+                                th:value="${buildingSearchRequest.managerPhoneNumber}"
                               />
                             </div>
                             <div class="col-xs-2">
@@ -404,7 +404,7 @@
                             <td th:text="${building.address}"></td>
                             <td th:text="${building.numberOfBasement}"></td>
                             <td th:text="${building.managerName}"></td>
-                            <td th:text="${building.managePhoneNumber}"></td>
+                            <td th:text="${building.managerPhoneNumber}"></td>
                             <td th:text="${building.floorArea}"></td>
                             <td th:text="${building.rentArea}"></td>
                             <td th:text="${building.emptyArea}"></td>

@@ -7,7 +7,7 @@ public class BuildingSearchResponseBuilder {
     private String name;
     private String address;
     private String managerName;
-    private String managePhoneNumber;
+    private String managerPhoneNumber;
     private Long floorArea;
     private String rentArea;
     private Long rentPrice;
@@ -19,7 +19,7 @@ public class BuildingSearchResponseBuilder {
     public BuildingSearchResponseBuilder name(String name) { this.name = name; return this; }
     public BuildingSearchResponseBuilder address(String address) { this.address = address; return this; }
     public BuildingSearchResponseBuilder managerName(String managerName) { this.managerName = managerName; return this; }
-    public BuildingSearchResponseBuilder managePhoneNumber(String managePhoneNumber) { this.managePhoneNumber = managePhoneNumber; return this; }
+    public BuildingSearchResponseBuilder managerPhoneNumber(String managerPhoneNumber) { this.managerPhoneNumber = managerPhoneNumber; return this; }
     public BuildingSearchResponseBuilder floorArea(Long floorArea) { this.floorArea = floorArea; return this; }
     public BuildingSearchResponseBuilder rentArea(String rentArea) { this.rentArea = rentArea; return this; }
     public BuildingSearchResponseBuilder rentPrice(Long rentPrice) { this.rentPrice = rentPrice; return this; }
@@ -33,7 +33,7 @@ public class BuildingSearchResponseBuilder {
         response.setName(this.name);
         response.setAddress(this.address);
         response.setManagerName(this.managerName);
-        response.setManagePhoneNumber(this.managePhoneNumber);
+        response.setManagerPhoneNumber(this.managerPhoneNumber);
         response.setFloorArea(this.floorArea);
         response.setRentArea(this.rentArea);
         response.setRentPrice(this.rentPrice);

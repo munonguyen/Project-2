@@ -38,7 +38,7 @@
                     <a class="nav-link" th:href="@{/contact}">Contact</a>
                 </li>
 
-                <th:block sec:authorize="hasAnyRole('ROLE_MANAGER','ROLE_EMPLOYEE')">
+                <th:block sec:authorize="hasAnyRole('MANAGER','STAFF')">
                     <li class="nav-item">
                         <a th:href="@{/admin/orderList}" class="nav-link">
                             Order List
@@ -46,7 +46,7 @@
                     </li>
 
                 </th:block>
-                <th:block sec:authorize="hasRole('ROLE_MANAGER')">
+                <th:block sec:authorize="hasRole('MANAGER')">
                     <li class="nav-item">
                         <a th:href="@{/admin/building}" class="nav-link">
                             Create Product

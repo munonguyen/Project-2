@@ -41,7 +41,7 @@ public class BuildingSearchMatcher {
         if (!containsIgnoreCase(building.getManagerName(), request.getManagerName())) {
             return false;
         }
-        if (!contains(building.getManagerPhoneNumber(), request.getManagePhoneNumber())) {
+        if (!contains(building.getManagerPhoneNumber(), request.getManagerPhoneNumber())) {
             return false;
         }
         if (!matchesTypeCode(building, request)) {

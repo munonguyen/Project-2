@@ -17,7 +17,7 @@ public class BuildingSearchResponse {
     String address; //street,ward,district
     String numberOfBasement;
     String managerName;
-    String managePhoneNumber;
+    String managerPhoneNumber;
     Long floorArea;
     String rentArea; //"100,200,300"
     Long emptyArea;

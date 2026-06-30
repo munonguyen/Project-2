@@ -43,7 +43,7 @@
                         </div>
 
                         <!-- For Manager edit Building -->
-                        <th:block sec:authorize="hasAuthority('ROLE_MANAGER')">
+                        <th:block sec:authorize="hasRole('MANAGER')">
                             <a style="color:red;"
                                th:href="@{|/admin/building?id=${prodInfo.id}|}">Edit Product</a>
                         </th:block>
