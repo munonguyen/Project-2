@@ -35,29 +35,28 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
 
     @Override
     public ResponseDTO loadStaffs(Long buildingId) {
-        ResponseDTO responseDTO = new ResponseDTO();
-
-        List<User> staffs = userRepository.findAllByUserRoleAndActiveTrue(SystemConstant.STAFF_ROLE);
         Building building = buildingRepository.findById(buildingId)
                 .orElseThrow(() -> new DataBuildingInvalidException(
                         "Không tìm thấy tòa nhà có ID " + buildingId));
-        Set<Long> assignedStaffs = building.getAssignmentBuildings().stream()
+
+        Set<Long> assignedStaffIds = building.getAssignmentBuildings().stream()
                 .map(AssignmentBuilding::getStaff)
                 .filter(Objects::nonNull)
                 .map(User::getId)
                 .collect(Collectors.toSet());
 
-        List<StaffResponseDTO> staffResponseDTOS = new ArrayList<>();
-        for (User user : staffs) {
-            StaffResponseDTO staffResponseDTO = new StaffResponseDTO();
-            staffResponseDTO.setId(user.getId());
-            staffResponseDTO.setUserName(user.getUserName());
-            staffResponseDTO.setChecked("");
-            if (assignedStaffs.contains(user.getId())) {
-                staffResponseDTO.setChecked("checked");
-            }
-            staffResponseDTOS.add(staffResponseDTO);
-        }
+        List<StaffResponseDTO> staffResponseDTOS = userRepository
+                .findAllByUserRoleAndActiveTrue(SystemConstant.STAFF_ROLE).stream()
+                .map(user -> {
+                    StaffResponseDTO dto = new StaffResponseDTO();
+                    dto.setId(user.getId());
+                    dto.setUserName(user.getUserName());
+                    dto.setChecked(assignedStaffIds.contains(user.getId()) ? "checked" : "");
+                    return dto;
+                })
+                .toList();
+
+        ResponseDTO responseDTO = new ResponseDTO();
         responseDTO.setData(staffResponseDTOS);
         responseDTO.setMessage("Load staff list successfully");
         return responseDTO;
@@ -70,14 +69,13 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
                         "Không tìm thấy tòa nhà có ID " + assignBuildingDTO.getBuildingId()));
 
         List<Long> staffIds = normalizeIds(assignBuildingDTO.getStaffIds(), "Danh sách ID nhân viên");
-        List<User> staffs = findAssignableStaffs(staffIds);
-
-        List<AssignmentBuilding> assignments = new ArrayList<>();
-        for (User staff : staffs) {
-            assignments.add(new AssignmentBuilding(building, staff));
-        }
-
+        
         deleteByBuildingId(building.getId());
+        
+        List<AssignmentBuilding> assignments = findAssignableStaffs(staffIds).stream()
+                .map(staff -> new AssignmentBuilding(building, staff))
+                .toList();
+
         if (!assignments.isEmpty()) {
             assignmentBuildingRepository.saveAll(assignments);
         }

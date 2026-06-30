@@ -27,7 +27,9 @@ public class BuildingConverter {
         BuildingSearchResponse response = modelMapper.map(building, BuildingSearchResponse.class);
         response.setAddress(buildAddress(building));
         response.setRentArea(buildRentArea(building));
-        response.setBrokerageFee(toDouble(building.getBrokerageFee()));
+        if (building.getBrokerageFee() != null) {
+            response.setBrokerageFee(building.getBrokerageFee().doubleValue());
+        }
         if (building.getNumberOfBasement() != null) {
             response.setNumberOfBasement(String.valueOf(building.getNumberOfBasement()));
         }
@@ -38,9 +40,6 @@ public class BuildingConverter {
     public BuildingDTO toBuildingDTO(Building building) {
         BuildingDTO dto = modelMapper.map(building, BuildingDTO.class);
         dto.setDistrictId(building.getDistrict());
-        dto.setNumberOfBasement(toLong(building.getNumberOfBasement()));
-        dto.setLevel(parseLong(building.getLevel()));
-        dto.setBrokerageFee(toDouble(building.getBrokerageFee()));
         dto.setRentArea(buildRentArea(building));
         dto.setTypeCode(splitTypeCode(building.getType()));
         if (building.getImage() != null && building.getImage().length > 0) {
@@ -58,7 +57,7 @@ public class BuildingConverter {
         return building;
     }
 
-    public void updateBuilding(BuildingDTO dto, Building building){
+    public void mapToExistingBuilding(BuildingDTO dto, Building building){
         boolean skipNull = modelMapper.getConfiguration().isSkipNullEnabled();
         modelMapper.getConfiguration().setSkipNullEnabled(true);
         modelMapper.map(dto, building);
@@ -81,7 +80,7 @@ public class BuildingConverter {
             building.setPrice(dto.getRentPrice());
         }
         if (dto.getBrokerageFee() != null) {
-            building.setBrokerageFee(toBigDecimal(dto.getBrokerageFee()));
+            building.setBrokerageFee(BigDecimal.valueOf(dto.getBrokerageFee()));
         }
         if (dto.getTypeCode() != null) {
             building.setType(String.join(",", dto.getTypeCode()));
@@ -92,24 +91,6 @@ public class BuildingConverter {
     }
 
 
-    private Long toLong(Integer value) {
-        return value == null ? null : value.longValue();
-    }
-
-    private Long parseLong(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        try {
-            return Long.parseLong(value);
-        } catch (NumberFormatException exception) {
-            return null;
-        }
-    }
-
-    private Double toDouble(BigDecimal value) {
-        return value == null ? null : value.doubleValue();
-    }
 
     private List<String> splitTypeCode(String type) {
         if (type == null || type.isBlank()) {
@@ -130,13 +111,7 @@ public class BuildingConverter {
                 .collect(Collectors.joining(", "));
     }
 
-    private Integer toInteger(Long value) {
-        return value == null ? null : value.intValue();
-    }
 
-    private BigDecimal toBigDecimal(Double value) {
-        return value == null ? null : BigDecimal.valueOf(value);
-    }
 
     private String buildRentArea(Building building) {
         if (building.getRentAreas() == null || building.getRentAreas().isEmpty()) {

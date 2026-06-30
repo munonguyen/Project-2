@@ -54,7 +54,7 @@ public class BuildingServiceImpl implements BuildingService {
         Building building = buildingRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tòa nhà có ID " + dto.getId()));
 
-        buildingConverter.updateBuilding(dto, building);
+        buildingConverter.mapToExistingBuilding(dto, building);
         Building savedBuilding = buildingRepository.save(building);
 
         rentAreaService.replaceByBuilding(savedBuilding, dto.getRentArea());
