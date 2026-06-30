@@ -9,4 +9,6 @@ public interface RentAreaService {
     void replaceByBuilding(Building building, String rentAreaValues);
 
     void deleteByBuildingId(Long buildingId);
+
+    void deleteByBuildingIds(java.util.List<Long> buildingIds);
 }

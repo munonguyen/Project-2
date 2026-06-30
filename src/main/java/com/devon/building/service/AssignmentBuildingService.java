@@ -11,4 +11,6 @@ public interface AssignmentBuildingService {
     Building saveAssignBuilding(AssignBuildingDTO assignBuildingDTO);
 
     void deleteByBuildingId(Long buildingId);
+
+    void deleteByBuildingIds(java.util.List<Long> buildingIds);
 }

@@ -24,18 +24,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 
+import lombok.RequiredArgsConstructor;
+
 @Controller
 @Transactional
+@RequiredArgsConstructor
 public class MainController {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private CustomerFormValidator customerFormValidator;
+    private final CustomerFormValidator customerFormValidator;
 
     @InitBinder
     public void myInitBinder(WebDataBinder dataBinder) {

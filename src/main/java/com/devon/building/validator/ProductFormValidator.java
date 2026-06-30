@@ -10,11 +10,13 @@ import org.springframework.validation.Validator;
 import com.devon.building.repository.ProductRepository;
 import com.devon.building.form.ProductForm;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class ProductFormValidator implements Validator {
  
-   @Autowired
-   private ProductRepository productRepository;
+   private final ProductRepository productRepository;
 
    @Override
    public boolean supports(Class<?> clazz) {

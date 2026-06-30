@@ -7,6 +7,7 @@ import com.devon.building.model.dto.ResponseDTO;
 import com.devon.building.service.AssignmentBuildingService;
 import com.devon.building.service.BuildingService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -14,16 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/buildings")
 public class BuildingAPI {
 
     private final BuildingService buildingService;
     private final AssignmentBuildingService assignmentBuildingService;
-
-    public BuildingAPI(BuildingService buildingService, AssignmentBuildingService assignmentBuildingService) {
-        this.buildingService = buildingService;
-        this.assignmentBuildingService = assignmentBuildingService;
-    }
 
     @GetMapping("/{id}/staffs")
     public ResponseEntity<ResponseDTO> loadStaffs(@PathVariable Long id) {

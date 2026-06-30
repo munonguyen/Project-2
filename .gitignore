@@ -43,3 +43,6 @@ build/
 
 # Maven output for the nested application
 /src/main/target/
+.idea/
+data/
+target/

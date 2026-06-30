@@ -89,6 +89,11 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
         assignmentBuildingRepository.deleteByBuildingId(buildingId);
     }
 
+    @Override
+    public void deleteByBuildingIds(List<Long> buildingIds) {
+        assignmentBuildingRepository.deleteByBuildingIdIn(buildingIds);
+    }
+
     private List<Long> normalizeIds(List<Long> ids, String fieldName) {
         if (ids == null) {
             return Collections.emptyList();

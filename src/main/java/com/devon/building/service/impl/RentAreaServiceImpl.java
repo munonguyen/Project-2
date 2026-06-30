@@ -53,4 +53,9 @@ public class RentAreaServiceImpl implements RentAreaService {
     public void deleteByBuildingId(Long buildingId) {
         rentAreaRepository.deleteByBuildingId(buildingId);
     }
+
+    @Override
+    public void deleteByBuildingIds(List<Long> buildingIds) {
+        rentAreaRepository.deleteByBuildingIdIn(buildingIds);
+    }
 }

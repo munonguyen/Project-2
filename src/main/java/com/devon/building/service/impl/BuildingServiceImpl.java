@@ -71,12 +71,15 @@ public class BuildingServiceImpl implements BuildingService {
     public void deleteBuilding(List<Long> ids) {
         List<Long> buildingIds = normalizeIds(ids, "Danh sách ID tòa nhà");
         if (!buildingIds.isEmpty()) {
-            validateBuildingsExist(buildingIds);
-            for (Long id : buildingIds) {
-                assignmentBuildingService.deleteByBuildingId(id);
-                rentAreaService.deleteByBuildingId(id);
+            List<Long> existingIds = buildingRepository.findAllById(buildingIds).stream()
+                    .map(Building::getId)
+                    .toList();
+            
+            if (!existingIds.isEmpty()) {
+                assignmentBuildingService.deleteByBuildingIds(existingIds);
+                rentAreaService.deleteByBuildingIds(existingIds);
+                buildingRepository.deleteAllByIdInBatch(existingIds);
             }
-            buildingRepository.deleteAllById(buildingIds);
         }
     }
 
@@ -88,23 +91,5 @@ public class BuildingServiceImpl implements BuildingService {
             throw new DataBuildingInvalidException(fieldName + " không hợp lệ");
         }
         return ids.stream().distinct().toList();
-    }
-
-    private void validateBuildingsExist(List<Long> buildingIds) {
-        Set<Long> existingIds = buildingRepository.findAllById(buildingIds).stream()
-                .map(Building::getId)
-                .collect(Collectors.toSet());
-        List<Long> missingIds = buildingIds.stream()
-                .filter(id -> !existingIds.contains(id))
-                .toList();
-        if (!missingIds.isEmpty()) {
-            throw new EntityNotFoundException("Không tìm thấy tòa nhà có ID " + formatIds(missingIds));
-        }
-    }
-
-    private String formatIds(List<Long> ids) {
-        return ids.stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(", "));
     }
 }

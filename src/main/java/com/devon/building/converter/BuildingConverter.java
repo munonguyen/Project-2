@@ -5,10 +5,13 @@ import com.devon.building.entity.RentArea;
 import com.devon.building.enums.District;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,17 +19,14 @@ import java.util.stream.Stream;
 @Component
 public class BuildingConverter {
 
+    @Autowired
+    private ModelMapper modelMapper;
+
+
     public BuildingSearchResponse toBuildingSearchResponse(Building building) {
-        BuildingSearchResponse response = new BuildingSearchResponse();
-        response.setId(building.getId());
-        response.setName(building.getName());
+        BuildingSearchResponse response = modelMapper.map(building, BuildingSearchResponse.class);
         response.setAddress(buildAddress(building));
-        response.setManagerName(building.getManagerName());
-        response.setManagePhoneNumber(building.getManagerPhoneNumber());
-        response.setFloorArea(building.getFloorArea());
         response.setRentArea(buildRentArea(building));
-        response.setRentPrice((long) building.getPrice());
-        response.setServiceFee(building.getServiceFee());
         response.setBrokerageFee(toDouble(building.getBrokerageFee()));
         if (building.getNumberOfBasement() != null) {
             response.setNumberOfBasement(String.valueOf(building.getNumberOfBasement()));
@@ -36,27 +36,11 @@ public class BuildingConverter {
 
 
     public BuildingDTO toBuildingDTO(Building building) {
-        BuildingDTO dto = new BuildingDTO();
-        dto.setId(building.getId());
-        dto.setName(building.getName());
-        dto.setStreet(building.getStreet());
-        dto.setWard(building.getWard());
+        BuildingDTO dto = modelMapper.map(building, BuildingDTO.class);
         dto.setDistrictId(building.getDistrict());
-        dto.setStructure(building.getStructure());
         dto.setNumberOfBasement(toLong(building.getNumberOfBasement()));
-        dto.setFloorArea(building.getFloorArea());
-        dto.setDirection(building.getDirection());
         dto.setLevel(parseLong(building.getLevel()));
-        dto.setRentPrice((long) building.getPrice());
-        dto.setRentPriceDescription(building.getRentPriceDescription());
-        dto.setServiceFee(building.getServiceFee());
-        dto.setCarFee(building.getCarFee());
-        dto.setOverTimeFee(building.getOverTimeFee());
         dto.setBrokerageFee(toDouble(building.getBrokerageFee()));
-        dto.setNote(building.getNote());
-        dto.setManagerName(building.getManagerName());
-        dto.setManagerPhoneNumber(building.getManagerPhoneNumber());
-        dto.setImage(building.getImage());
         dto.setRentArea(buildRentArea(building));
         dto.setTypeCode(splitTypeCode(building.getType()));
         if (building.getImage() != null && building.getImage().length > 0) {
@@ -66,7 +50,8 @@ public class BuildingConverter {
     }
     public Building toBuilding(BuildingDTO dto){
         Building building = new Building();
-        updateBuilding(dto, building, false);
+        modelMapper.map(dto, building);
+        mapCustomFields(dto, building);
         if (building.getCreateDate() == null) {
             building.setCreateDate(new Date());
         }
@@ -74,7 +59,36 @@ public class BuildingConverter {
     }
 
     public void updateBuilding(BuildingDTO dto, Building building){
-        updateBuilding(dto, building, true);
+        boolean skipNull = modelMapper.getConfiguration().isSkipNullEnabled();
+        modelMapper.getConfiguration().setSkipNullEnabled(true);
+        modelMapper.map(dto, building);
+        modelMapper.getConfiguration().setSkipNullEnabled(skipNull);
+        
+        mapCustomFields(dto, building);
+    }
+
+    private void mapCustomFields(BuildingDTO dto, Building building) {
+        if (dto.getDistrictId() != null) {
+            building.setDistrict(dto.getDistrictId());
+        }
+        if (dto.getNumberOfBasement() != null) {
+            building.setNumberOfBasement(dto.getNumberOfBasement().intValue());
+        }
+        if (dto.getLevel() != null) {
+            building.setLevel(dto.getLevel().toString());
+        }
+        if (dto.getRentPrice() != null) {
+            building.setPrice(dto.getRentPrice());
+        }
+        if (dto.getBrokerageFee() != null) {
+            building.setBrokerageFee(toBigDecimal(dto.getBrokerageFee()));
+        }
+        if (dto.getTypeCode() != null) {
+            building.setType(String.join(",", dto.getTypeCode()));
+        }
+        if (dto.getUploadImage() != null && !dto.getUploadImage().isBlank()) {
+            building.setImage(toImageBytes(dto.getUploadImage()));
+        }
     }
 
 
@@ -115,78 +129,13 @@ public class BuildingConverter {
                 .filter(value -> !value.isEmpty())
                 .collect(Collectors.joining(", "));
     }
+
     private Integer toInteger(Long value) {
         return value == null ? null : value.intValue();
     }
 
     private BigDecimal toBigDecimal(Double value) {
         return value == null ? null : BigDecimal.valueOf(value);
-    }
-
-    private void updateBuilding(BuildingDTO dto, Building building, boolean merge){
-        if (!merge || dto.getName() != null) {
-            building.setName(dto.getName());
-        }
-        if (!merge || dto.getStreet() != null) {
-            building.setStreet(dto.getStreet());
-        }
-        if (!merge || dto.getWard() != null) {
-            building.setWard(dto.getWard());
-        }
-        if (!merge || dto.getDistrictId() != null) {
-            building.setDistrict(dto.getDistrictId());
-        }
-        if (!merge || dto.getStructure() != null) {
-            building.setStructure(dto.getStructure());
-        }
-        if (!merge || dto.getNumberOfBasement() != null) {
-            building.setNumberOfBasement(toInteger(dto.getNumberOfBasement()));
-        }
-        if (!merge || dto.getFloorArea() != null) {
-            building.setFloorArea(dto.getFloorArea());
-        }
-        if (!merge || dto.getDirection() != null) {
-            building.setDirection(dto.getDirection());
-        }
-        if (!merge || dto.getLevel() != null) {
-            building.setLevel(dto.getLevel() == null ? null : dto.getLevel().toString());
-        }
-        if (!merge || dto.getRentPrice() != null) {
-            building.setPrice(dto.getRentPrice() == null ? 0 : dto.getRentPrice());
-        }
-        if (!merge || dto.getRentPriceDescription() != null) {
-            building.setRentPriceDescription(dto.getRentPriceDescription());
-        }
-        if (!merge || dto.getServiceFee() != null) {
-            building.setServiceFee(dto.getServiceFee());
-        }
-        if (!merge || dto.getCarFee() != null) {
-            building.setCarFee(dto.getCarFee());
-        }
-        if (!merge || dto.getOverTimeFee() != null) {
-            building.setOverTimeFee(dto.getOverTimeFee());
-        }
-        if (!merge || dto.getBrokerageFee() != null) {
-            building.setBrokerageFee(toBigDecimal(dto.getBrokerageFee()));
-        }
-        if (dto.getTypeCode() != null) {
-            building.setType(String.join(",", dto.getTypeCode()));
-        }
-        if (!merge || dto.getNote() != null) {
-            building.setNote(dto.getNote());
-        }
-        if (!merge || dto.getManagerName() != null) {
-            building.setManagerName(dto.getManagerName());
-        }
-        if (!merge || dto.getManagerPhoneNumber() != null) {
-            building.setManagerPhoneNumber(dto.getManagerPhoneNumber());
-        }
-        if (dto.getImage() != null) {
-            building.setImage(dto.getImage());
-        }
-        if (dto.getUploadImage() != null && !dto.getUploadImage().isBlank()) {
-            building.setImage(toImageBytes(dto.getUploadImage()));
-        }
     }
 
     private String buildRentArea(Building building) {

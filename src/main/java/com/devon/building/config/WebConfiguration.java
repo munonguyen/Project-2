@@ -18,9 +18,5 @@ public class WebConfiguration implements WebMvcConfigurer{
         return messageSource;
     }
 
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
   
 }
