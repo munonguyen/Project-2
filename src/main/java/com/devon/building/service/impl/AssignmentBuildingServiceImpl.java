@@ -46,7 +46,7 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
                 .collect(Collectors.toSet());
 
         List<StaffResponseDTO> staffResponseDTOS = userRepository
-                .findAllByUserRoleAndActiveTrue(SystemConstant.STAFF_ROLE).stream()
+                .findAllByUserRoleInAndActiveTrue(List.of(SystemConstant.STAFF_ROLE, "ROLE_" + SystemConstant.STAFF_ROLE)).stream()
                 .map(user -> {
                     StaffResponseDTO dto = new StaffResponseDTO();
                     dto.setId(user.getId());
@@ -119,7 +119,7 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
         }
 
         List<Long> invalidStaffIds = staffs.stream()
-                .filter(staff -> !staff.isActive() || !SystemConstant.STAFF_ROLE.equals(staff.getUserRole()))
+                .filter(staff -> !staff.isActive() || (!SystemConstant.STAFF_ROLE.equals(staff.getUserRole()) && !("ROLE_" + SystemConstant.STAFF_ROLE).equals(staff.getUserRole())))
                 .map(User::getId)
                 .toList();
         if (!invalidStaffIds.isEmpty()) {
