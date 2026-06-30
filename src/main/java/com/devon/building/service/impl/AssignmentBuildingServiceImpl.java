@@ -1,6 +1,6 @@
 package com.devon.building.service.impl;
 
-import com.devon.building.CustomException.DataBuildingInvalidException;
+import com.devon.building.exception.DataBuildingInvalidException;
 import com.devon.building.constant.SystemConstant;
 import com.devon.building.entity.AssignmentBuilding;
 import com.devon.building.entity.Building;
@@ -14,6 +14,7 @@ import com.devon.building.repository.UserRepository;
 import com.devon.building.service.AssignmentBuildingService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import com.devon.building.util.ValidationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +47,7 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
                 .collect(Collectors.toSet());
 
         List<StaffResponseDTO> staffResponseDTOS = userRepository
-                .findAllByUserRoleInAndActiveTrue(List.of(SystemConstant.STAFF_ROLE, "ROLE_" + SystemConstant.STAFF_ROLE)).stream()
+                .findAllByUserRoleAndActiveTrue(SystemConstant.STAFF_ROLE).stream()
                 .map(user -> {
                     StaffResponseDTO dto = new StaffResponseDTO();
                     dto.setId(user.getId());
@@ -68,7 +69,7 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Không tìm thấy tòa nhà có ID " + assignBuildingDTO.getBuildingId()));
 
-        List<Long> staffIds = normalizeIds(assignBuildingDTO.getStaffIds(), "Danh sách ID nhân viên");
+        List<Long> staffIds = ValidationUtils.normalizeIds(assignBuildingDTO.getStaffIds(), "Danh sách ID nhân viên");
         
         deleteByBuildingId(building.getId());
         
@@ -92,15 +93,6 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
         assignmentBuildingRepository.deleteByBuildingIdIn(buildingIds);
     }
 
-    private List<Long> normalizeIds(List<Long> ids, String fieldName) {
-        if (ids == null) {
-            return Collections.emptyList();
-        }
-        if (ids.stream().anyMatch(Objects::isNull)) {
-            throw new DataBuildingInvalidException(fieldName + " không hợp lệ");
-        }
-        return ids.stream().distinct().toList();
-    }
 
     private List<User> findAssignableStaffs(List<Long> staffIds) {
         if (staffIds.isEmpty()) {
@@ -119,7 +111,7 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
         }
 
         List<Long> invalidStaffIds = staffs.stream()
-                .filter(staff -> !staff.isActive() || (!SystemConstant.STAFF_ROLE.equals(staff.getUserRole()) && !("ROLE_" + SystemConstant.STAFF_ROLE).equals(staff.getUserRole())))
+                .filter(staff -> !staff.isActive() || !SystemConstant.STAFF_ROLE.equals(staff.getUserRole()))
                 .map(User::getId)
                 .toList();
         if (!invalidStaffIds.isEmpty()) {

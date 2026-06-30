@@ -1,9 +1,8 @@
 package com.devon.building.service.impl;
 
-import com.devon.building.CustomException.DataBuildingInvalidException;
+import com.devon.building.exception.DataBuildingInvalidException;
 import com.devon.building.converter.BuildingConverter;
 import com.devon.building.entity.Building;
-import com.devon.building.matcher.BuildingSearchMatcher;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
@@ -18,9 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.devon.building.util.ValidationUtils;
 
 @Service
 @Transactional
@@ -29,14 +26,12 @@ public class BuildingServiceImpl implements BuildingService {
 
     private final BuildingRepository buildingRepository;
     private final BuildingConverter buildingConverter;
-    private final BuildingSearchMatcher buildingSearchMatcher;
     private final AssignmentBuildingService assignmentBuildingService;
     private final RentAreaService rentAreaService;
 
     @Override
     public List<BuildingSearchResponse> getAllBuildings(BuildingSearchRequest buildingSearchRequest) {
-        return buildingRepository.findAll().stream()
-                .filter(building -> buildingSearchMatcher.matches(building, buildingSearchRequest))
+        return buildingRepository.searchBuildings(buildingSearchRequest).stream()
                 .map(buildingConverter::toBuildingSearchResponse)
                 .toList();
     }
@@ -69,27 +64,17 @@ public class BuildingServiceImpl implements BuildingService {
 
     @Override
     public void deleteBuilding(List<Long> ids) {
-        List<Long> buildingIds = normalizeIds(ids, "Danh sách ID tòa nhà");
+        List<Long> buildingIds = ValidationUtils.normalizeIds(ids, "Danh sách ID tòa nhà");
         if (!buildingIds.isEmpty()) {
             List<Long> existingIds = buildingRepository.findAllById(buildingIds).stream()
                     .map(Building::getId)
                     .toList();
-            
+
             if (!existingIds.isEmpty()) {
                 assignmentBuildingService.deleteByBuildingIds(existingIds);
                 rentAreaService.deleteByBuildingIds(existingIds);
                 buildingRepository.deleteAllByIdInBatch(existingIds);
             }
         }
-    }
-
-    private List<Long> normalizeIds(List<Long> ids, String fieldName) {
-        if (ids == null) {
-            return Collections.emptyList();
-        }
-        if (ids.stream().anyMatch(Objects::isNull)) {
-            throw new DataBuildingInvalidException(fieldName + " không hợp lệ");
-        }
-        return ids.stream().distinct().toList();
     }
 }

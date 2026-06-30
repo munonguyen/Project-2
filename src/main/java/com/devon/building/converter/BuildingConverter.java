@@ -10,16 +10,17 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class BuildingConverter {
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
 
     public BuildingSearchResponse toBuildingSearchResponse(Building building) {
@@ -53,17 +54,16 @@ public class BuildingConverter {
         Building building = new Building();
         modelMapper.map(dto, building);
         mapCustomFields(dto, building);
-        if (building.getCreateDate() == null) {
-            building.setCreateDate(new Date());
+        if (building.getCreatedDate() == null) {
+            building.setCreatedDate(new Date());
         }
         return building;
     }
 
     public void mapToExistingBuilding(BuildingDTO dto, Building building){
-        boolean skipNull = modelMapper.getConfiguration().isSkipNullEnabled();
-        modelMapper.getConfiguration().setSkipNullEnabled(true);
-        modelMapper.map(dto, building);
-        modelMapper.getConfiguration().setSkipNullEnabled(skipNull);
+        ModelMapper skipNullMapper = new ModelMapper();
+        skipNullMapper.getConfiguration().setSkipNullEnabled(true).setFullTypeMatchingRequired(true);
+        skipNullMapper.map(dto, building);
         
         mapCustomFields(dto, building);
     }

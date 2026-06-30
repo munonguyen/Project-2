@@ -22,16 +22,16 @@ public class User extends BaseEntity implements Serializable{
     @Serial
     private static final long serialVersionUID = -2054386655979281969L;
 
-    public static final String ROLE_MANAGER = "MANAGER";
-    public static final String ROLE_EMPLOYEE = "STAFF";
-    public static final String ROLE_USER = "USER";
+    public static final String ROLE_MANAGER = "ROLE_MANAGER";
+    public static final String ROLE_STAFF = "ROLE_STAFF";
+    public static final String ROLE_USER = "ROLE_USER";
 
 
     @Column(name = "username", length = 255, nullable = false)
     private String userName;
 
     @Column(name = "password", length = 255, nullable = false)
-    private String encrytedPassword;
+    private String password;
 
     @Column(name = "active")
     private boolean active;
@@ -69,7 +69,7 @@ public class User extends BaseEntity implements Serializable{
 
     @Override
     public String toString() {
-        return "[" + this.userName + "," + this.encrytedPassword + "," + this.userRole + "]";
+        return "[" + this.userName + "," + this.password + "," + this.userRole + "]";
     }
 
 }

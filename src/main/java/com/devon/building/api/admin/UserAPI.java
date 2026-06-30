@@ -68,7 +68,9 @@ public class UserAPI {
         if (!idList.isEmpty()) {
             userService.delete(idList);
         }
-        return ResponseEntity.ok().body("{ \"message\": \"Xóa người dùng thành công\" }");
+        ResponseDTO responseDTO = new ResponseDTO();
+        responseDTO.setMessage("Xóa người dùng thành công");
+        return ResponseEntity.ok().body(responseDTO);
     }
 
     @PutMapping("/password/{id}")

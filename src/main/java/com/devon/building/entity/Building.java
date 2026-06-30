@@ -19,14 +19,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "building")
-public class Building implements Serializable {
+public class Building extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = -1000119078147252957L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @Column(name = "name", length = 255, nullable = false)
     private String name;
@@ -116,19 +112,7 @@ public class Building implements Serializable {
     @Column(name = "image", length = Integer.MAX_VALUE, nullable = true)
     private byte[] image;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "createddate")
-    private Date createDate;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "modifieddate")
-    private Date modifiedDate;
-
-    @Column(name = "createdby")
-    private String createdBy;
-
-    @Column(name = "modifiedby")
-    private String modifiedBy;
 
     @OneToMany(mappedBy = "building", fetch = FetchType.LAZY)
     private List<AssignmentBuilding> assignmentBuildings = new ArrayList<>();

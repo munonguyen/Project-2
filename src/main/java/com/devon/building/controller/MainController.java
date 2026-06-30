@@ -43,7 +43,6 @@ public class MainController {
         if (target == null) {
             return;
         }
-        System.out.println("Target=" + target);
 
         // Case update quantity in cart
         // (@ModelAttribute("cartForm") @Validated CartInfo cartForm)
@@ -260,7 +259,6 @@ public class MainController {
             building = this.productRepository.findProduct(id);
         }
         if (building != null && building.getImage() != null) {
-            response.setContentType("image/jpeg");
             response.setContentType("image/png");
             response.getOutputStream().write(building.getImage());
         }

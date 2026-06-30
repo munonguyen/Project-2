@@ -1,6 +1,6 @@
 package com.devon.building.exception;
 
-import com.devon.building.CustomException.DataBuildingInvalidException;
+import com.devon.building.exception.DataBuildingInvalidException;
 import com.devon.building.model.dto.ResponseDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;

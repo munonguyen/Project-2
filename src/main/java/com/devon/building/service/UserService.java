@@ -17,5 +17,4 @@ public interface UserService {
 
     Map<Long, String> loadStaffs();
 
-
 }

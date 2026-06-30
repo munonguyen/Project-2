@@ -11,8 +11,8 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponseDTO {
-    private Object data;
+public class ResponseDTO<T> {
+    private T data;
     private String message;
     private List<String> detail;
 }

@@ -12,10 +12,10 @@ public enum UserRole {
     }
 
     public String getCode() {
-        return this.name(); // ROLE_MANAGER
+        return this.name(); // ROLE_MANAGER, ROLE_STAFF, ROLE_USER
     }
 
     public String getLabel() {
-        return label;       // Manager
+        return label;       // Manager, Staff, User
     }
 }

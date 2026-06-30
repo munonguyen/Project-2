@@ -35,7 +35,6 @@ public class RentAreaServiceImpl implements RentAreaService {
                     RentArea rentArea = new RentArea();
                     rentArea.setValue(value);
                     rentArea.setBuilding(building);
-                    rentArea.setCreatedDate(LocalDate.now());
                     rentAreas.add(rentArea);
                 });
         if (!rentAreas.isEmpty()) {

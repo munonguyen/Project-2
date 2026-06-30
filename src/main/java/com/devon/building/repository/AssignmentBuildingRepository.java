@@ -10,11 +10,11 @@ import java.util.List;
 @Repository
 public interface AssignmentBuildingRepository extends JpaRepository<AssignmentBuilding, Long> {
 
-    @Modifying
-    @Query("DELETE FROM AssignmentBuilding a WHERE a.building.id = ?1")
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM AssignmentBuilding ab WHERE ab.building.id = ?1")
     void deleteByBuildingId(Long buildingId);
 
-    @Modifying
-    @Query("DELETE FROM AssignmentBuilding a WHERE a.building.id IN ?1")
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM AssignmentBuilding ab WHERE ab.building.id IN ?1")
     void deleteByBuildingIdIn(List<Long> buildingIds);
 }

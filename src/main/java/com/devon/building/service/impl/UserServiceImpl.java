@@ -33,10 +33,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> listUserInfo(String key) {
-        StringBuilder sql = new StringBuilder("SELECT NEW " + User.class.getName() + "(u.id, u.userName, u.active, u.userRole, u.fullName, u.phone) " + "FROM " + User.class.getName() + " u ");
+        StringBuilder sql = new StringBuilder(
+                "SELECT NEW " + User.class.getName() + "(u.id, u.userName, u.active, u.userRole, u.fullName, u.phone) "
+                        + "FROM " + User.class.getName() + " u ");
 
         if (key != null && !key.trim().isEmpty()) {
-            sql.append("WHERE (LOWER(u.userName) LIKE :key OR LOWER(u.fullName) LIKE :key OR LOWER(u.phone) LIKE :key) ");
+            sql.append(
+                    "WHERE (LOWER(u.userName) LIKE :key OR LOWER(u.fullName) LIKE :key OR LOWER(u.phone) LIKE :key) ");
         }
 
         sql.append("ORDER BY u.userName DESC");
@@ -64,7 +67,7 @@ public class UserServiceImpl implements UserService {
         user.setUserName(userName);
         user.setActive(true);
         user.setFullName(userDTO.getFullName());
-        user.setEncrytedPassword(passwordEncoder.encode(SystemConstant.PASSWORD_DEFAULT));
+        user.setPassword(passwordEncoder.encode(SystemConstant.PASSWORD_DEFAULT));
         user.setUserRole(User.ROLE_MANAGER);
         if (userDTO.getFileData() != null) {
             byte[] image = null;

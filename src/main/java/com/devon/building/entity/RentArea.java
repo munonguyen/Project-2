@@ -14,10 +14,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RentArea {
-    @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long id;
+public class RentArea extends BaseEntity {
 
     @Column(name="`value`")
     private Long value;
@@ -26,15 +23,4 @@ public class RentArea {
     @JoinColumn(name="buildingid")
     private Building building;
 
-    @Column(name="createddate")
-    private LocalDate createdDate;
-
-    @Column(name="modifieddate")
-    private LocalDate modifiedDate;
-
-    @Column(name="createdby")
-    private String createdBy;
-
-    @Column(name="modifiedby")
-    private String modifiedBy;
 }
