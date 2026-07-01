@@ -18,7 +18,6 @@ import com.devon.building.util.ValidationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -35,7 +34,7 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
     private final UserRepository userRepository;
 
     @Override
-    public ResponseDTO loadStaffs(Long buildingId) {
+    public ResponseDTO<List<StaffResponseDTO>> loadStaffs(Long buildingId) {
         Building building = buildingRepository.findById(buildingId)
                 .orElseThrow(() -> new DataBuildingInvalidException(
                         "Không tìm thấy tòa nhà có ID " + buildingId));
@@ -57,7 +56,7 @@ public class AssignmentBuildingServiceImpl implements AssignmentBuildingService 
                 })
                 .toList();
 
-        ResponseDTO responseDTO = new ResponseDTO();
+        ResponseDTO<List<StaffResponseDTO>> responseDTO = new ResponseDTO<>();
         responseDTO.setData(staffResponseDTOS);
         responseDTO.setMessage("Load staff list successfully");
         return responseDTO;
