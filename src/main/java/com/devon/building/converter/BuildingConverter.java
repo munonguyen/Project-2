@@ -48,22 +48,19 @@ public class BuildingConverter {
         return dto;
     }
 
-    public Building toBuilding(BuildingDTO dto) {
-        Building building = new Building();
-        modelMapper.map(dto, building);
-        mapCustomFields(dto, building);
-        if (building.getCreatedDate() == null) {
+    public Building toBuilding(BuildingDTO dto, Building building) {
+        if (building == null) {
+            building = new Building();
             building.setCreatedDate(new Date());
         }
-        return building;
-    }
 
-    public void mapToExistingBuilding(BuildingDTO dto, Building building) {
         ModelMapper skipNullMapper = new ModelMapper();
         skipNullMapper.getConfiguration().setSkipNullEnabled(true).setFullTypeMatchingRequired(true);
         skipNullMapper.map(dto, building);
-        
+
         mapCustomFields(dto, building);
+
+        return building;
     }
 
     private void mapCustomFields(BuildingDTO dto, Building building) {
