@@ -5,7 +5,6 @@ import com.devon.building.entity.RentArea;
 import com.devon.building.enums.District;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,6 @@ public class BuildingConverter {
 
     private final ModelMapper modelMapper;
 
-
     public BuildingSearchResponse toBuildingSearchResponse(Building building) {
         BuildingSearchResponse response = modelMapper.map(building, BuildingSearchResponse.class);
         response.setAddress(buildAddress(building));
@@ -38,7 +36,6 @@ public class BuildingConverter {
         return response;
     }
 
-
     public BuildingDTO toBuildingDTO(Building building) {
         BuildingDTO dto = modelMapper.map(building, BuildingDTO.class);
         dto.setDistrictId(building.getDistrict());
@@ -50,7 +47,8 @@ public class BuildingConverter {
         }
         return dto;
     }
-    public Building toBuilding(BuildingDTO dto){
+
+    public Building toBuilding(BuildingDTO dto) {
         Building building = new Building();
         modelMapper.map(dto, building);
         mapCustomFields(dto, building);
@@ -60,7 +58,7 @@ public class BuildingConverter {
         return building;
     }
 
-    public void mapToExistingBuilding(BuildingDTO dto, Building building){
+    public void mapToExistingBuilding(BuildingDTO dto, Building building) {
         ModelMapper skipNullMapper = new ModelMapper();
         skipNullMapper.getConfiguration().setSkipNullEnabled(true).setFullTypeMatchingRequired(true);
         skipNullMapper.map(dto, building);
@@ -92,8 +90,6 @@ public class BuildingConverter {
         }
     }
 
-
-
     private List<String> splitTypeCode(String type) {
         if (type == null || type.isBlank()) {
             return Collections.emptyList();
@@ -103,6 +99,7 @@ public class BuildingConverter {
                 .filter(value -> !value.isEmpty())
                 .toList();
     }
+
     private String buildAddress(Building building) {
         Map<String, String> districtMap = District.getDistrictMap();
         String district = districtMap.getOrDefault(building.getDistrict(), building.getDistrict());
@@ -113,8 +110,6 @@ public class BuildingConverter {
                 .collect(Collectors.joining(", "));
     }
 
-
-
     private String buildRentArea(Building building) {
         if (building.getRentAreas() == null || building.getRentAreas().isEmpty()) {
             return null;
@@ -124,6 +119,21 @@ public class BuildingConverter {
                 .filter(Objects::nonNull)
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
+    }
+
+    public void parseRentAreas(Building building, String rentAreaValues) {
+        if (rentAreaValues == null || rentAreaValues.isBlank()) {
+            return;
+        }
+        Arrays.stream(rentAreaValues.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .map(Long::parseLong)
+                .forEach(value -> {
+                    RentArea rentArea = new RentArea();
+                    rentArea.setValue(value);
+                    building.addRentArea(rentArea);
+                });
     }
 
     private byte[] toImageBytes(String uploadImage) {

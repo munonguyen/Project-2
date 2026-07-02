@@ -96,8 +96,7 @@ public class BuildingSearchMatcher {
         if (request.getStaffId() == null) {
             return true;
         }
-        return building.getAssignmentBuildings().stream()
-                .map(assignmentBuilding -> assignmentBuilding.getStaff())
+        return building.getStaffs().stream()
                 .anyMatch(staff -> staff != null && request.getStaffId().equals(staff.getId()));
     }
 

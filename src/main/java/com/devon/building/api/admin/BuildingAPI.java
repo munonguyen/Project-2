@@ -5,7 +5,6 @@ import com.devon.building.model.dto.AssignBuildingDTO;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.ResponseDTO;
 import com.devon.building.model.dto.response.StaffResponseDTO;
-import com.devon.building.service.AssignmentBuildingService;
 import com.devon.building.service.BuildingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +27,10 @@ import java.util.List;
 public class BuildingAPI {
 
     private final BuildingService buildingService;
-    private final AssignmentBuildingService assignmentBuildingService;
 
     @GetMapping("/{id}/staffs")
     public ResponseEntity<ResponseDTO<List<StaffResponseDTO>>> loadStaffs(@PathVariable Long id) {
-        return ResponseEntity.ok(assignmentBuildingService.loadStaffs(id));
+        return ResponseEntity.ok(buildingService.loadStaffs(id));
     }
 
     @PostMapping
@@ -92,7 +90,7 @@ public class BuildingAPI {
             return validationError(bindingResult);
         }
 
-        Building savedAssignBuilding = assignmentBuildingService.saveAssignBuilding(assignBuildingDTO);
+        Building savedAssignBuilding = buildingService.saveAssignBuilding(assignBuildingDTO);
         ResponseDTO<Long> response = new ResponseDTO<>();
         response.setMessage("Giao tòa nhà thành công");
         response.setData(savedAssignBuilding.getId());

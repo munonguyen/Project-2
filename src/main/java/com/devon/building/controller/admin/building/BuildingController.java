@@ -6,16 +6,14 @@ import com.devon.building.enums.RentType;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
+import com.devon.building.pagination.PaginationResult;
 import com.devon.building.service.BuildingService;
 import com.devon.building.service.UserService;
 import com.devon.building.converter.BuildingConverter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import java.util.List;
 import static com.devon.building.constant.SystemConstant.DISTRICT;
@@ -31,13 +29,14 @@ public class BuildingController {
     private final BuildingService buildingService;
 
     @GetMapping("/list")
-    public ModelAndView getAllBuilding(@ModelAttribute BuildingSearchRequest buildingSearchRequest) {
+    public ModelAndView getAllBuilding(@ModelAttribute BuildingSearchRequest buildingSearchRequest, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int maxResult,@RequestParam(defaultValue = "5") int maxNavigationPage) {
         ModelAndView modelAndView = new ModelAndView("admin/building/buildingList");
         modelAndView.addObject("staffs", userService.loadStaffs());
         modelAndView.addObject(DISTRICT, District.getDistrictMap());
         modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
-        List<BuildingSearchResponse> result = buildingService.getAllBuildings(buildingSearchRequest);
-        modelAndView.addObject("buildingList", result);
+        PaginationResult<BuildingSearchResponse> result = buildingService.getAllBuildings(buildingSearchRequest,page,maxResult,maxNavigationPage);
+        modelAndView.addObject("paginationResult", result);
+        modelAndView.addObject("buildingList", result.getList());
         return modelAndView;
     }
     @GetMapping("/edit")

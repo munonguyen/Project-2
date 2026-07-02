@@ -16,20 +16,23 @@ public class PaginationResult<E> {
     private List<Integer> navigationPages;
 
     public PaginationResult(TypedQuery<E> query, TypedQuery<Long> countQuery, int page, int maxResult, int maxNavigationPage) {
+        this(
+                query.setFirstResult((Math.max(page, 1) - 1) * maxResult)
+                        .setMaxResults(maxResult)
+                        .getResultList(),
+                countQuery.getSingleResult().intValue(),
+                page,
+                maxResult,
+                maxNavigationPage
+        );
+    }
 
+    public PaginationResult(List<E> list, int totalRecords, int page, int maxResult, int maxNavigationPage) {
+        this.list = list;
+        this.totalRecords = totalRecords;
         this.maxResult = maxResult;
         this.currentPage = Math.max(page, 1);
-
-        // 1. Đếm số bản ghi
-        this.totalRecords = countQuery.getSingleResult().intValue();
-
-        // 2. Tính tổng số trang
-        this.totalPages = (int) Math.ceil((double) totalRecords / maxResult);
-
-        // 3. Lấy dữ liệu phân trang
-        this.list = query.setFirstResult((currentPage - 1) * maxResult).setMaxResults(maxResult).getResultList();
-
-        // 4. Tính navigation
+        this.totalPages = maxResult == 0 ? 0 : (int) Math.ceil((double) totalRecords / maxResult);
         this.maxNavigationPage = Math.min(maxNavigationPage, totalPages);
         calcNavigationPages();
     }

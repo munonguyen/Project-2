@@ -57,6 +57,23 @@
                   id="building-search-form"
                   th:object="${buildingSearchRequest}"
                 >
+                  <input
+                    type="hidden"
+                    id="page"
+                    name="page"
+                    th:value="${paginationResult != null ? paginationResult.currentPage : 1}"
+                  />
+                  <input
+                    type="hidden"
+                    id="maxResult"
+                    name="maxResult"
+                    th:value="${paginationResult != null ? paginationResult.maxResult : 10}"
+                  />
+                  <input
+                    type="hidden"
+                    name="maxNavigationPage"
+                    th:value="${paginationResult != null ? paginationResult.navigationPages.size() : 5}"
+                  />
                   <div class="widget-box">
                     <div class="widget-header">
                       <h4 class="widget-title">Tìm kiếm</h4>
@@ -451,6 +468,29 @@
                         </tbody>
                       </table>
                     </div>
+                    <div
+                      class="text-center"
+                      th:if="${paginationResult != null and paginationResult.totalPages > 1}"
+                      style="margin-top: 16px"
+                    >
+                      <th:block th:each="pageNumber : ${paginationResult.navigationPages}">
+                        <a
+                          th:if="${pageNumber != -1}"
+                          href="#"
+                          th:onclick="|goToPage(${pageNumber}); return false;|"
+                          th:text="${pageNumber}"
+                          th:classappend="${pageNumber == paginationResult.currentPage} ? ' btn btn-primary btn-sm' : ' btn btn-default btn-sm'"
+                          style="margin: 0 4px"
+                        ></a>
+                        <span
+                          th:if="${pageNumber == -1}"
+                          class="btn btn-default btn-sm disabled"
+                          style="margin: 0 4px"
+                        >
+                          ...
+                        </span>
+                      </th:block>
+                    </div>
                   </div>
                 </div>
                 <!-- PAGE CONTENT ENDS -->
@@ -532,6 +572,11 @@
     <script type="text/javascript">
       const buildingCheckboxSelector = ".check-box-element";
       const staffCheckboxSelector = ".staff-check-box-element";
+
+      function goToPage(page) {
+        $("#page").val(page);
+        $("#building-search-form").submit();
+      }
 
       function assignBuilding(buildingId) {
         $("#buildingId").val(buildingId);

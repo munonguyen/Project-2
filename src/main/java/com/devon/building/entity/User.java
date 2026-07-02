@@ -55,8 +55,8 @@ public class User extends BaseEntity implements Serializable{
     @Column(name = "image", length = Integer.MAX_VALUE, nullable = true)
     private byte[] image;
 
-    @OneToMany(mappedBy="staff",fetch = FetchType.LAZY)
-    private List<AssignmentBuilding>  assignmentBuildings = new ArrayList<>();
+    @ManyToMany(mappedBy = "staffs", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Building> buildings = new ArrayList<>();
 
     public User(Long id, String userName, Boolean active, String userRole, String fullName, String phone) {
         this.id = id;

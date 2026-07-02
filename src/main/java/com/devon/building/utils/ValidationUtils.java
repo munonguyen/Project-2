@@ -1,4 +1,4 @@
-package com.devon.building.util;
+package com.devon.building.utils;
 
 import com.devon.building.exception.DataBuildingInvalidException;
 
