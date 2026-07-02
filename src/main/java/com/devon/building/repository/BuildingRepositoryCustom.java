@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// Cái này e tập làm phân trang dựa vào thằng Product nó đang có sẵn 
 @Repository
 @Transactional(readOnly = true)
 public class BuildingRepositoryCustom {
