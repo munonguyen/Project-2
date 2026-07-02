@@ -22,60 +22,49 @@ public class UserAPI {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<?> createUser(@Valid @ModelAttribute UserDTO user, BindingResult bindingResult) {
-        ResponseDTO responseDTO = new ResponseDTO();
-        try {
-            if (bindingResult.hasErrors()) {
-                List<String> errorMessages = bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage)
-                        .collect(Collectors.toList());
-
-                responseDTO.setMessage("Dữ liệu không hợp lệ");
-                responseDTO.setDetail(errorMessages);
-                return ResponseEntity.badRequest().body(responseDTO);
-            }
-            userService.save(user);
-            responseDTO.setMessage("Tạo người dùng thành công");
-            return ResponseEntity.ok().body(responseDTO);
-        } catch (Exception e) {
-            responseDTO.setMessage(e.getMessage());
-            return ResponseEntity.badRequest().body(responseDTO);
+    public ResponseEntity<ResponseDTO<Void>> createUser(@Valid @ModelAttribute UserDTO user, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return validationError(bindingResult);
         }
+        userService.save(user);
+        ResponseDTO<Void> responseDTO = new ResponseDTO<>();
+        responseDTO.setMessage("Tạo người dùng thành công");
+        return ResponseEntity.ok(responseDTO);
     }
 
     @PutMapping
-    public ResponseEntity<?> updateUser(@Valid @RequestBody UserDTO userDTO, BindingResult bindingResult) {
-        ResponseDTO responseDTO = new ResponseDTO();
-        try {
-            if (bindingResult.hasErrors()) {
-                List<String> errorMessages = bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage)
-                        .collect(Collectors.toList());
-
-                responseDTO.setMessage("Dữ liệu không hợp lệ");
-                responseDTO.setDetail(errorMessages);
-                return ResponseEntity.badRequest().body(responseDTO);
-            }
-            userService.update(userDTO);
-            responseDTO.setMessage("Cập nhật người dùng thành công");
-            return ResponseEntity.ok().body(responseDTO);
-        } catch (Exception e) {
-            responseDTO.setMessage(e.getMessage());
-            return ResponseEntity.badRequest().body(responseDTO);
+    public ResponseEntity<ResponseDTO<Void>> updateUser(@Valid @RequestBody UserDTO userDTO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return validationError(bindingResult);
         }
+        userService.update(userDTO);
+        ResponseDTO<Void> responseDTO = new ResponseDTO<>();
+        responseDTO.setMessage("Cập nhật người dùng thành công");
+        return ResponseEntity.ok(responseDTO);
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteUsers(@RequestBody List<Long> idList) {
+    public ResponseEntity<ResponseDTO<Void>> deleteUsers(@RequestBody List<Long> idList) {
         if (!idList.isEmpty()) {
             userService.delete(idList);
         }
-        ResponseDTO responseDTO = new ResponseDTO();
+        ResponseDTO<Void> responseDTO = new ResponseDTO<>();
         responseDTO.setMessage("Xóa người dùng thành công");
-        return ResponseEntity.ok().body(responseDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @PutMapping("/password/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody PasswordDTO passwordDTO) {
-        ResponseDTO responseDTO = new ResponseDTO();
-        return ResponseEntity.ok().body(responseDTO);
+    public ResponseEntity<ResponseDTO<Void>> updateUser(@PathVariable Long id, @RequestBody PasswordDTO passwordDTO) {
+        ResponseDTO<Void> responseDTO = new ResponseDTO<>();
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    private ResponseEntity<ResponseDTO<Void>> validationError(BindingResult bindingResult) {
+        ResponseDTO<Void> responseDTO = new ResponseDTO<>();
+        responseDTO.setMessage("Dữ liệu không hợp lệ");
+        responseDTO.setDetail(bindingResult.getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .toList());
+        return ResponseEntity.badRequest().body(responseDTO);
     }
 }

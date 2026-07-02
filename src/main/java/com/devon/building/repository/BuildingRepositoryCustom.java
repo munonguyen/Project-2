@@ -139,10 +139,15 @@ public class BuildingRepositoryCustom {
         if (numberOfBasement == null || numberOfBasement.isBlank()) {
             return;
         }
-        String clause = " and b.numberOfBasement = :numberOfBasement";
-        sql.append(clause);
-        countSql.append(clause);
-        parameters.put("numberOfBasement", Integer.parseInt(numberOfBasement.trim()));
+        try {
+            int parsedBasement = Integer.parseInt(numberOfBasement.trim());
+            String clause = " and b.numberOfBasement = :numberOfBasement";
+            sql.append(clause);
+            countSql.append(clause);
+            parameters.put("numberOfBasement", parsedBasement);
+        } catch (NumberFormatException e) {
+            // Ignore invalid number format for search criteria
+        }
     }
 
     private void appendTypeCodes(
