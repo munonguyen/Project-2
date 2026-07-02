@@ -147,7 +147,7 @@ public class BuildingRepositoryCustom {
             countSql.append(clause);
             parameters.put("numberOfBasement", parsedBasement);
         } catch (NumberFormatException e) {
-            // Ignore invalid number format for search criteria
+            
         }
     }
 
