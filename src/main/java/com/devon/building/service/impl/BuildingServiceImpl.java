@@ -65,7 +65,7 @@ public class BuildingServiceImpl implements BuildingService {
 
     @Override
     public Building createBuilding(BuildingDTO dto) {
-        Building building = buildingConverter.toBuilding(dto, null);
+        Building building = buildingConverter.toBuilding(dto);
         buildingConverter.parseRentAreas(building, dto.getRentArea());
         return buildingRepository.save(building);
     }
@@ -75,7 +75,7 @@ public class BuildingServiceImpl implements BuildingService {
         Building building = buildingRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tòa nhà có ID " + dto.getId()));
 
-        building = buildingConverter.toBuilding(dto, building);
+        buildingConverter.mapToExistingBuilding(dto, building);
         building.clearRentAreas();
         buildingConverter.parseRentAreas(building, dto.getRentArea());
         return buildingRepository.save(building);

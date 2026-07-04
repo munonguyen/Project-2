@@ -1,5 +1,7 @@
 package com.devon.building.converter;
 
+import com.devon.building.builder.BuildingDTOBuilder;
+import com.devon.building.builder.BuildingSearchResponseBuilder;
 import com.devon.building.entity.Building;
 import com.devon.building.entity.RentArea;
 import com.devon.building.enums.District;
@@ -22,45 +24,76 @@ public class BuildingConverter {
     private final ModelMapper modelMapper;
 
     public BuildingSearchResponse toBuildingSearchResponse(Building building) {
-        BuildingSearchResponse response = modelMapper.map(building, BuildingSearchResponse.class);
-        response.setAddress(buildAddress(building));
-        response.setRentArea(buildRentArea(building));
-        response.setRentPrice((long) building.getPrice());
-        response.setManagerPhoneNumber(building.getManagerPhoneNumber());
+        BuildingSearchResponseBuilder builder = new BuildingSearchResponseBuilder()
+                .id(building.getId())
+                .name(building.getName())
+                .address(buildAddress(building))
+                .managerName(building.getManagerName())
+                .managerPhoneNumber(building.getManagerPhoneNumber())
+                .floorArea(building.getFloorArea())
+                .rentArea(buildRentArea(building))
+                .rentPrice((long) building.getPrice())
+                .serviceFee(building.getServiceFee());
         if (building.getBrokerageFee() != null) {
-            response.setBrokerageFee(building.getBrokerageFee().doubleValue());
+            builder.brokerageFee(building.getBrokerageFee().doubleValue());
         }
         if (building.getNumberOfBasement() != null) {
-            response.setNumberOfBasement(String.valueOf(building.getNumberOfBasement()));
+            builder.numberOfBasement(String.valueOf(building.getNumberOfBasement()));
         }
-        return response;
+        return builder.build();
     }
 
     public BuildingDTO toBuildingDTO(Building building) {
-        BuildingDTO dto = modelMapper.map(building, BuildingDTO.class);
-        dto.setDistrictId(building.getDistrict());
-        dto.setRentPrice((long) building.getPrice());
-        dto.setRentArea(buildRentArea(building));
-        dto.setTypeCode(splitTypeCode(building.getType()));
-        if (building.getImage() != null && building.getImage().length > 0) {
-            dto.setUploadImage(Base64.getEncoder().encodeToString(building.getImage()));
+        BuildingDTOBuilder builder = new BuildingDTOBuilder()
+                .id(building.getId())
+                .name(building.getName())
+                .street(building.getStreet())
+                .ward(building.getWard())
+                .districtId(building.getDistrict())
+                .rentPrice((long) building.getPrice())
+                .floorArea(building.getFloorArea())
+                .structure(building.getStructure())
+                .direction(building.getDirection())
+                .rentPriceDescription(building.getRentPriceDescription())
+                .serviceFee(building.getServiceFee())
+                .carFee(building.getCarFee())
+                .overTimeFee(building.getOverTimeFee())
+                .note(building.getNote())
+                .managerName(building.getManagerName())
+                .managerPhoneNumber(building.getManagerPhoneNumber())
+                .rentArea(buildRentArea(building))
+                .typeCode(splitTypeCode(building.getType()));
+        if (building.getNumberOfBasement() != null) {
+            builder.numberOfBasement(building.getNumberOfBasement().longValue());
         }
-        return dto;
+        if (building.getBrokerageFee() != null) {
+            builder.brokerageFee(building.getBrokerageFee().doubleValue());
+        }
+        if (building.getLevel() != null && !building.getLevel().isBlank()) {
+            builder.level(Long.valueOf(building.getLevel()));
+        }
+        if (building.getImage() != null && building.getImage().length > 0) {
+            builder.uploadImage(Base64.getEncoder().encodeToString(building.getImage()));
+        }
+        return builder.build();
     }
 
-    public Building toBuilding(BuildingDTO dto, Building building) {
-        if (building == null) {
-            building = new Building();
+    public Building toBuilding(BuildingDTO dto) {
+        Building building = new Building();
+        modelMapper.map(dto, building);
+        mapCustomFields(dto, building);
+        if (building.getCreatedDate() == null) {
             building.setCreatedDate(new Date());
         }
+        return building;
+    }
 
+    public void mapToExistingBuilding(BuildingDTO dto, Building building) {
         ModelMapper skipNullMapper = new ModelMapper();
         skipNullMapper.getConfiguration().setSkipNullEnabled(true).setFullTypeMatchingRequired(true);
         skipNullMapper.map(dto, building);
 
         mapCustomFields(dto, building);
-
-        return building;
     }
 
     private void mapCustomFields(BuildingDTO dto, Building building) {
