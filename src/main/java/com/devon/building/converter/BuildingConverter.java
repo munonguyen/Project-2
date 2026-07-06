@@ -162,7 +162,8 @@ public class BuildingConverter {
                 .forEach(value -> {
                     RentArea rentArea = new RentArea();
                     rentArea.setValue(value);
-                    building.addRentArea(rentArea);
+                    rentArea.setBuilding(building);
+                    building.getRentAreas().add(rentArea);
                 });
     }
 

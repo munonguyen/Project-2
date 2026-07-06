@@ -17,10 +17,7 @@ import lombok.Setter;
 import java.io.Serial;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Getter
@@ -134,87 +131,5 @@ public class Building extends BaseEntity {
             orphanRemoval = true
     )
     private List<RentArea> rentAreas = new ArrayList<>();
-
-    public List<User> getStaffs() {
-        return Collections.unmodifiableList(staffs);
-    }
-
-    public List<RentArea> getRentAreas() {
-        return Collections.unmodifiableList(rentAreas);
-    }
-
-    public void addStaff(User staff) {
-        Objects.requireNonNull(staff, "staff must not be null");
-        linkStaff(staff);
-    }
-
-    public void removeStaff(User staff) {
-        if (staff == null) {
-            return;
-        }
-        unlinkStaff(staff);
-    }
-
-    public void clearStaffs() {
-        new ArrayList<>(staffs).forEach(this::removeStaff);
-    }
-
-    public void replaceStaffs(Collection<User> staffs) {
-        clearStaffs();
-        staffs.forEach(this::addStaff);
-    }
-
-    public void addRentArea(RentArea rentArea) {
-        Objects.requireNonNull(rentArea, "rentArea must not be null");
-        linkRentArea(rentArea);
-    }
-
-    public void removeRentArea(RentArea rentArea) {
-        if (rentArea == null) {
-            return;
-        }
-        unlinkRentArea(rentArea);
-    }
-
-    public void clearRentAreas() {
-        new ArrayList<>(rentAreas).forEach(this::removeRentArea);
-    }
-
-    public void replaceRentAreas(Collection<RentArea> rentAreas) {
-        clearRentAreas();
-        rentAreas.forEach(this::addRentArea);
-    }
-
-    private void linkStaff(User staff) {
-        if (staffs.contains(staff)) {
-            return;
-        }
-        staffs.add(staff);
-        if (!staff.getBuildings().contains(this)) {
-            staff.getBuildings().add(this);
-        }
-    }
-
-    private void unlinkStaff(User staff) {
-        if (!staffs.remove(staff)) {
-            return;
-        }
-        staff.getBuildings().remove(this);
-    }
-
-    private void linkRentArea(RentArea rentArea) {
-        if (rentAreas.contains(rentArea)) {
-            return;
-        }
-        rentAreas.add(rentArea);
-        rentArea.setBuilding(this);
-    }
-
-    private void unlinkRentArea(RentArea rentArea) {
-        if (!rentAreas.remove(rentArea)) {
-            return;
-        }
-        rentArea.setBuilding(null);
-    }
 
 }

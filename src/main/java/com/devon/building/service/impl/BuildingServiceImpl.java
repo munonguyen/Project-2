@@ -3,6 +3,7 @@ package com.devon.building.service.impl;
 import com.devon.building.constant.SystemConstant;
 import com.devon.building.converter.BuildingConverter;
 import com.devon.building.entity.Building;
+import com.devon.building.entity.RentArea;
 import com.devon.building.entity.User;
 import com.devon.building.exception.DataBuildingInvalidException;
 import com.devon.building.matcher.BuildingSearchMatcher;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -76,7 +78,7 @@ public class BuildingServiceImpl implements BuildingService {
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tòa nhà có ID " + dto.getId()));
 
         buildingConverter.mapToExistingBuilding(dto, building);
-        building.clearRentAreas();
+        clearRentAreas(building);
         buildingConverter.parseRentAreas(building, dto.getRentArea());
         return buildingRepository.save(building);
     }
@@ -127,9 +129,30 @@ public class BuildingServiceImpl implements BuildingService {
 
         List<Long> staffIds = ValidationUtils.normalizeIds(assignBuildingDTO.getStaffIds(), "Danh sách ID nhân viên");
 
-        building.replaceStaffs(findAssignableStaffs(staffIds));
+        replaceStaffs(building, findAssignableStaffs(staffIds));
 
         return buildingRepository.save(building);
+    }
+
+    private void clearRentAreas(Building building) {
+        List<RentArea> rentAreas = new ArrayList<>(building.getRentAreas());
+        rentAreas.forEach(rentArea -> rentArea.setBuilding(null));
+        building.getRentAreas().clear();
+    }
+
+    private void replaceStaffs(Building building, List<User> staffs) {
+        building.getStaffs().forEach(staff -> staff.getBuildings().remove(building));
+        building.getStaffs().clear();
+
+        staffs.stream()
+                .filter(Objects::nonNull)
+                .filter(staff -> !building.getStaffs().contains(staff))
+                .forEach(staff -> {
+                    building.getStaffs().add(staff);
+                    if (!staff.getBuildings().contains(building)) {
+                        staff.getBuildings().add(building);
+                    }
+                });
     }
 
     private List<User> findAssignableStaffs(List<Long> staffIds) {
