@@ -5,9 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-
 public class StaffResponseDTO {
-    private Long id;
-    private String userName;
-    private String checked;
+  private Long id;
+  private String userName;
+  private String checked;
 }

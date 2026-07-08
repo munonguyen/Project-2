@@ -1,21 +1,21 @@
 package com.devon.building.enums;
 
 public enum UserRole {
-    ROLE_MANAGER("Manager"),
-    ROLE_STAFF("Staff"),
-    ROLE_USER("User");
+  ROLE_MANAGER("Manager"),
+  ROLE_STAFF("Staff"),
+  ROLE_USER("User");
 
-    private final String label;
+  private final String label;
 
-    UserRole(String label) {
-        this.label = label;
-    }
+  UserRole(String label) {
+    this.label = label;
+  }
 
-    public String getCode() {
-        return this.name(); // ROLE_MANAGER, ROLE_STAFF, ROLE_USER
-    }
+  public String getCode() {
+    return this.name(); // ROLE_MANAGER, ROLE_STAFF, ROLE_USER
+  }
 
-    public String getLabel() {
-        return label;       // Manager, Staff, User
-    }
+  public String getLabel() {
+    return label; // Manager, Staff, User
+  }
 }

@@ -1,6 +1,5 @@
 package com.devon.building.config;
 
-
 import com.devon.building.security.CustomSuccessHandler;
 import com.devon.building.service.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -19,44 +18,42 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsService;
+  private final UserDetailsServiceImpl userDetailsService;
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasAnyRole("STAFF", "MANAGER")
-                        .requestMatchers("/api/**").hasAnyRole("STAFF", "MANAGER")
-                        .anyRequest().permitAll()
-                )
-                .exceptionHandling(ex -> ex.accessDeniedPage("/403"))
-                .formLogin(form -> form
-                        .loginPage("/admin/login")
-                        .loginProcessingUrl("/j_spring_security_check")
-                        .successHandler(myAuthenticationSuccessHandler())
-//                        .defaultSuccessUrl("/admin/accountInfo", true)
-                        .failureUrl("/admin/login?incorrectAccount")
-                        .usernameParameter("userName")
-                        .passwordParameter("password")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/admin/logout")
-                        .logoutSuccessUrl("/")
-                        .permitAll()
-                );
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/admin/**")
+                    .hasAnyRole("STAFF", "MANAGER")
+                    .requestMatchers("/api/**")
+                    .hasAnyRole("STAFF", "MANAGER")
+                    .anyRequest()
+                    .permitAll())
+        .exceptionHandling(ex -> ex.accessDeniedPage("/403"))
+        .formLogin(
+            form ->
+                form.loginPage("/admin/login")
+                    .loginProcessingUrl("/j_spring_security_check")
+                    .successHandler(myAuthenticationSuccessHandler())
+                    //                        .defaultSuccessUrl("/admin/accountInfo", true)
+                    .failureUrl("/admin/login?incorrectAccount")
+                    .usernameParameter("userName")
+                    .passwordParameter("password")
+                    .permitAll())
+        .logout(logout -> logout.logoutUrl("/admin/logout").logoutSuccessUrl("/").permitAll());
 
-        return http.build();
-    }
+    return http.build();
+  }
 
-    @Bean
-    public AuthenticationSuccessHandler myAuthenticationSuccessHandler(){
-        return new CustomSuccessHandler();
-    }
+  @Bean
+  public AuthenticationSuccessHandler myAuthenticationSuccessHandler() {
+    return new CustomSuccessHandler();
+  }
 }

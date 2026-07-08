@@ -1,7 +1,0 @@
-# Local-only secrets. Copy to application-local.properties on your machine.
-
-# MySQL
-spring.datasource.password=your_mysql_password
-
-# SQL Server
-# spring.datasource.password=your_sqlserver_password

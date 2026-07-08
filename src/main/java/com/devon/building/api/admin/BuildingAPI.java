@@ -7,6 +7,7 @@ import com.devon.building.model.dto.ResponseDTO;
 import com.devon.building.model.dto.response.StaffResponseDTO;
 import com.devon.building.service.BuildingService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -19,90 +20,89 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/buildings")
 public class BuildingAPI {
 
-    private final BuildingService buildingService;
+  private final BuildingService buildingService;
 
-    @GetMapping("/{id}/staffs")
-    public ResponseEntity<ResponseDTO<List<StaffResponseDTO>>> loadStaffs(@PathVariable Long id) {
-        return ResponseEntity.ok(buildingService.loadStaffs(id));
+  @GetMapping("/{id}/staffs")
+  public ResponseEntity<ResponseDTO<List<StaffResponseDTO>>> loadStaffs(@PathVariable Long id) {
+    return ResponseEntity.ok(buildingService.loadStaffs(id));
+  }
+
+  @PostMapping
+  public ResponseEntity<ResponseDTO<Long>> createBuilding(
+      @RequestBody @Valid BuildingDTO buildingDTO, BindingResult bindingResult) {
+
+    if (bindingResult.hasErrors()) {
+      return validationError(bindingResult);
     }
 
-    @PostMapping
-    public ResponseEntity<ResponseDTO<Long>> createBuilding(
-            @RequestBody @Valid BuildingDTO buildingDTO, BindingResult bindingResult) {
+    Building savedBuilding = buildingService.createBuilding(buildingDTO);
+    ResponseDTO<Long> response = new ResponseDTO<>();
+    response.setMessage("Tạo tòa nhà thành công");
+    response.setData(savedBuilding.getId());
+    return ResponseEntity.ok(response);
+  }
 
-        if (bindingResult.hasErrors()) {
-            return validationError(bindingResult);
-        }
+  @PutMapping
+  public ResponseEntity<ResponseDTO<Long>> updateBuilding(
+      @RequestBody @Valid BuildingDTO buildingDTO, BindingResult bindingResult) {
 
-        Building savedBuilding = buildingService.createBuilding(buildingDTO);
-        ResponseDTO<Long> response = new ResponseDTO<>();
-        response.setMessage("Tạo tòa nhà thành công");
-        response.setData(savedBuilding.getId());
-        return ResponseEntity.ok(response);
+    if (bindingResult.hasErrors()) {
+      return validationError(bindingResult);
     }
 
-    @PutMapping
-    public ResponseEntity<ResponseDTO<Long>> updateBuilding(
-            @RequestBody @Valid BuildingDTO buildingDTO, BindingResult bindingResult) {
-
-        if (bindingResult.hasErrors()) {
-            return validationError(bindingResult);
-        }
-
-        ResponseDTO<Long> response = new ResponseDTO<>();
-        if (buildingDTO.getId() == null) {
-            response.setMessage("Phải chọn tòa nhà cần cập nhật");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        Building savedBuilding = buildingService.updateBuilding(buildingDTO);
-        response.setMessage("Cập nhật tòa nhà thành công");
-        response.setData(savedBuilding.getId());
-        return ResponseEntity.ok(response);
+    ResponseDTO<Long> response = new ResponseDTO<>();
+    if (buildingDTO.getId() == null) {
+      response.setMessage("Phải chọn tòa nhà cần cập nhật");
+      return ResponseEntity.badRequest().body(response);
     }
 
-    @DeleteMapping("/{ids}")
-    public ResponseEntity<ResponseDTO<Void>> deleteBuilding(@PathVariable List<Long> ids) {
-        ResponseDTO<Void> response = new ResponseDTO<>();
+    Building savedBuilding = buildingService.updateBuilding(buildingDTO);
+    response.setMessage("Cập nhật tòa nhà thành công");
+    response.setData(savedBuilding.getId());
+    return ResponseEntity.ok(response);
+  }
 
-        if (ids == null || ids.isEmpty()) {
-            response.setMessage("Không có ID tòa nhà nào được cung cấp");
-            return ResponseEntity.badRequest().body(response);
-        }
+  @DeleteMapping("/{ids}")
+  public ResponseEntity<ResponseDTO<Void>> deleteBuilding(@PathVariable List<Long> ids) {
+    ResponseDTO<Void> response = new ResponseDTO<>();
 
-        buildingService.deleteBuilding(ids);
-        response.setMessage("Xóa thành công");
-        return ResponseEntity.ok(response);
+    if (ids == null || ids.isEmpty()) {
+      response.setMessage("Không có ID tòa nhà nào được cung cấp");
+      return ResponseEntity.badRequest().body(response);
     }
 
-    @PutMapping("/assign")
-    public ResponseEntity<ResponseDTO<Long>> assignBuilding(
-            @RequestBody @Valid AssignBuildingDTO assignBuildingDTO, BindingResult bindingResult) {
+    buildingService.deleteBuilding(ids);
+    response.setMessage("Xóa thành công");
+    return ResponseEntity.ok(response);
+  }
 
-        if (bindingResult.hasErrors()) {
-            return validationError(bindingResult);
-        }
+  @PutMapping("/assign")
+  public ResponseEntity<ResponseDTO<Long>> assignBuilding(
+      @RequestBody @Valid AssignBuildingDTO assignBuildingDTO, BindingResult bindingResult) {
 
-        Building savedAssignBuilding = buildingService.saveAssignBuilding(assignBuildingDTO);
-        ResponseDTO<Long> response = new ResponseDTO<>();
-        response.setMessage("Giao tòa nhà thành công");
-        response.setData(savedAssignBuilding.getId());
-        return ResponseEntity.ok(response);
+    if (bindingResult.hasErrors()) {
+      return validationError(bindingResult);
     }
 
-    private static <T> ResponseEntity<ResponseDTO<T>> validationError(BindingResult bindingResult) {
-        ResponseDTO<T> response = new ResponseDTO<>();
-        response.setMessage("Dữ liệu không hợp lệ");
-        response.setDetail(bindingResult.getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .toList());
-        return ResponseEntity.badRequest().body(response);
-    }
+    Building savedAssignBuilding = buildingService.saveAssignBuilding(assignBuildingDTO);
+    ResponseDTO<Long> response = new ResponseDTO<>();
+    response.setMessage("Giao tòa nhà thành công");
+    response.setData(savedAssignBuilding.getId());
+    return ResponseEntity.ok(response);
+  }
+
+  private static <T> ResponseEntity<ResponseDTO<T>> validationError(BindingResult bindingResult) {
+    ResponseDTO<T> response = new ResponseDTO<>();
+    response.setMessage("Dữ liệu không hợp lệ");
+    response.setDetail(
+        bindingResult.getFieldErrors().stream()
+            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .toList());
+    return ResponseEntity.badRequest().body(response);
+  }
 }

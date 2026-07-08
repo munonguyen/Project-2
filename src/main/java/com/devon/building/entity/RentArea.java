@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-
 @Entity
 @Table(name = "rentarea")
 @Getter
@@ -16,11 +14,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class RentArea extends BaseEntity {
 
-    @Column(name="`value`")
-    private Long value;
+  @Column(name = "`value`")
+  private Long value;
 
-    @ManyToOne(fetch=FetchType.EAGER)
-    @JoinColumn(name="buildingid")
-    private Building building;
-
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "buildingid")
+  private Building building;
 }

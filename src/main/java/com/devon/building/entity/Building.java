@@ -10,14 +10,13 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.io.Serial;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -26,110 +25,103 @@ import java.util.List;
 @Table(name = "building")
 public class Building extends BaseEntity {
 
-    @Serial
-    private static final long serialVersionUID = -1000119078147252957L;
+  @Serial private static final long serialVersionUID = -1000119078147252957L;
 
-    @Column(name = "name", length = 255, nullable = false)
-    private String name;
+  @Column(name = "name", length = 255, nullable = false)
+  private String name;
 
-    @Column(name = "street", length = 255)
-    private String street;
+  @Column(name = "street", length = 255)
+  private String street;
 
-    @Column(name = "ward", length = 255)
-    private String ward;
+  @Column(name = "ward", length = 255)
+  private String ward;
 
-    @Column(name = "district", length = 255, nullable = false)
-    private String district;
+  @Column(name = "district", length = 255, nullable = false)
+  private String district;
 
-    @Column(name = "structure", length = 255)
-    private String structure;
+  @Column(name = "structure", length = 255)
+  private String structure;
 
-    @Column(name = "numberofbasement")
-    private Integer numberOfBasement;
+  @Column(name = "numberofbasement")
+  private Integer numberOfBasement;
 
-    @Column(name = "floorarea")
-    private Long floorArea;
+  @Column(name = "floorarea")
+  private Long floorArea;
 
-    @Column(name = "direction", length = 255)
-    private String direction;
+  @Column(name = "direction", length = 255)
+  private String direction;
 
-    @Column(name = "level", length = 255)
-    private String level;
+  @Column(name = "level", length = 255)
+  private String level;
 
-    @Column(name = "rentprice", nullable = false)
-    private double price;
+  @Column(name = "rentprice", nullable = false)
+  private double price;
 
-    @Column(name = "rentpricedescription", columnDefinition = "text")
-    private String rentPriceDescription;
+  @Column(name = "rentpricedescription", columnDefinition = "text")
+  private String rentPriceDescription;
 
-    @Column(name = "servicefee", length = 255)
-    private String serviceFee;
+  @Column(name = "servicefee", length = 255)
+  private String serviceFee;
 
-    @Column(name = "carfee", length = 255)
-    private String carFee;
+  @Column(name = "carfee", length = 255)
+  private String carFee;
 
-    @Column(name = "overtimefee", length = 255)
-    private String overTimeFee;
+  @Column(name = "overtimefee", length = 255)
+  private String overTimeFee;
 
-    @Column(name = "brokeragefee")
-    private BigDecimal brokerageFee;
+  @Column(name = "brokeragefee")
+  private BigDecimal brokerageFee;
 
-    @Column(name = "type", length = 255, nullable = false)
-    private String type;
+  @Column(name = "type", length = 255, nullable = false)
+  private String type;
 
-    @Column(name = "note", length = 255)
-    private String note;
+  @Column(name = "note", length = 255)
+  private String note;
 
-    @Column(name = "motofee", length = 255)
-    private String motoFee;
+  @Column(name = "motofee", length = 255)
+  private String motoFee;
 
-    @Column(name = "waterfee", length = 255)
-    private String waterFee;
+  @Column(name = "waterfee", length = 255)
+  private String waterFee;
 
-    @Column(name = "electricityfee", length = 255)
-    private String electricityFee;
+  @Column(name = "electricityfee", length = 255)
+  private String electricityFee;
 
-    @Column(name = "deposit", length = 255)
-    private String deposit;
+  @Column(name = "deposit", length = 255)
+  private String deposit;
 
-    @Column(name = "payment", length = 255)
-    private String payment;
+  @Column(name = "payment", length = 255)
+  private String payment;
 
-    @Column(name = "renttime", length = 255)
-    private String rentTime;
+  @Column(name = "renttime", length = 255)
+  private String rentTime;
 
-    @Column(name = "decorationtime", length = 255)
-    private String decorationTime;
+  @Column(name = "decorationtime", length = 255)
+  private String decorationTime;
 
-    @Column(name = "linkofbuilding", length = 255)
-    private String linkOfBuilding;
+  @Column(name = "linkofbuilding", length = 255)
+  private String linkOfBuilding;
 
-    @Column(name = "map", length = 255)
-    private String map;
+  @Column(name = "map", length = 255)
+  private String map;
 
-    @Column(name = "managername", length = 255)
-    private String managerName;
+  @Column(name = "managername", length = 255)
+  private String managerName;
 
-    @Column(name = "managerphone", length = 255)
-    private String managerPhoneNumber;
+  @Column(name = "managerphone", length = 255)
+  private String managerPhoneNumber;
 
-    @Lob
-    @Column(name = "image", length = Integer.MAX_VALUE)
-    private byte[] image;
+  @Lob
+  @Column(name = "image", length = Integer.MAX_VALUE)
+  private byte[] image;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "assignmentbuilding",
-            joinColumns = @JoinColumn(name = "buildingid", nullable = false),
-            inverseJoinColumns = @JoinColumn(name = "staffid", nullable = false)
-    )
-    private List<User> staffs = new ArrayList<>();
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "assignmentbuilding",
+      joinColumns = @JoinColumn(name = "buildingid", nullable = false),
+      inverseJoinColumns = @JoinColumn(name = "staffid", nullable = false))
+  private List<User> staffs = new ArrayList<>();
 
-    @OneToMany(
-            mappedBy = "building",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<RentArea> rentAreas = new ArrayList<>();
-
+  @OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<RentArea> rentAreas = new ArrayList<>();
 }
