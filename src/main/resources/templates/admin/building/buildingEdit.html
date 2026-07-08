@@ -169,9 +169,9 @@
                             <div class="col-xs-5">
 	                              <select
 	                                id="district"
-	                                name="districtId"
+	                                name="district"
 	                                class="form-control"
-	                                th:value="${building.districtId}"
+	                                th:value="${building.district}"
 	                                required
                               >
                                 <option value="">---Chọn quận---</option>
@@ -179,7 +179,7 @@
 	                                  th:each="d : ${districts}"
 	                                  th:value="${d.key}"
 	                                  th:text="${d.value}"
-	                                  th:selected="${d.key == building.districtId}"
+	                                  th:selected="${d.key == building.district}"
 	                                ></option>
                               </select>
                               <span
@@ -384,16 +384,16 @@
                           <div class="col-xs-12">
                             <label
                               class="col-xs-4 control-label"
-                              for="rentPrice"
+                              for="price"
                               >Giá thuê</label
                             >
                             <div class="col-xs-5">
                               <input
                                 type="number"
-                                id="rentPrice"
-                                name="rentPrice"
+                                id="price"
+                                name="price"
                                 placeholder="Nhập giá thuê"
-                                th:value="${building.rentPrice}"
+                                th:value="${building.price}"
                                 class="form-control"
                                 required
                               />
@@ -551,9 +551,9 @@
                                 <input
                                   type="checkbox"
 	                                  th:id="${'typeCode_' + type.key}"
-	                                  name="typeCode"
+	                                  name="type"
 	                                  th:value="${type.key}"
-	                                  th:checked="${building.typeCode != null and building.typeCode.contains(type.key)}"
+	                                  th:checked="${building.type != null and building.type.contains(type.key)}"
 	                                />
                                 <span th:text="${type.value}"></span>
                               </label>
@@ -637,17 +637,17 @@
                           <div class="col-xs-12">
                             <label
                               class="col-xs-4 control-label"
-                              for="uploadImage"
+                              for="image"
                               >Upload Image</label
                             >
                             <div class="col-xs-5">
                               <input
                                 type="file"
-                                id="uploadImage"
-                                name="uploadImage"
+                                id="image"
+                                name="image"
                                 accept="image/*"
                                 class="building-file-input"
-                                th:value="${building.uploadImage}"
+                                th:value="${building.image}"
                               />
                             </div>
                           </div>
@@ -694,7 +694,7 @@
     <th:block th:replace="~{admin/common/common-scripts :: jquery}"></th:block>
 
     <script type="text/javascript">
-      $("#uploadImage").on("change", function () {
+      $("#image").on("change", function () {
         const file = this.files && this.files[0];
         const imagePreview = $("#imagePreview");
         const imagePreviewPlaceholder = $("#imagePreviewPlaceholder");
@@ -721,11 +721,11 @@
         "ward",
         "structure",
         "numberOfBasement",
-        "districtId",
+        "district",
         "floorArea",
         "direction",
         "level",
-        "rentPrice",
+        "price",
         "rentPriceDescription",
         "serviceFee",
         "carFee",
@@ -733,7 +733,7 @@
         "managerName",
         "managerPhoneNumber",
         "rentArea",
-        "typeCode",
+        "type",
         "brokerageFee",
         "note",
       ];
@@ -743,7 +743,7 @@
         "floorArea",
         "level",
         "rentArea",
-        "rentPrice",
+        "price",
         "brokerageFee",
       ];
       const managerPhoneNumberPattern = /^\d{10}$/;
@@ -787,11 +787,11 @@
           showErrorMessage("noName");
           isValid = false;
         }
-        if (isBlank(data["districtId"])) {
+        if (isBlank(data["district"])) {
           showErrorMessage("noDistrict");
           isValid = false;
         }
-        if (isBlank(data["rentPrice"])) {
+        if (isBlank(data["price"])) {
           showErrorMessage("noRentPrice");
           isValid = false;
         }
@@ -809,7 +809,7 @@
           showErrorMessage("noManagerPhoneNumber");
           isValid = false;
         }
-        if (!data["typeCode"] || data["typeCode"].length === 0) {
+        if (!data["type"] || data["type"].length === 0) {
           showErrorMessage("noTypeCode");
           isValid = false;
         }
@@ -824,16 +824,19 @@
         const formData = $("#building-edit-form").serializeArray(); // truyền dữ liệu từ form về dạng mảng các object
 
         $.each(formData, function (_, field) {
-          if (field.name === "typeCode") {
+          if (field.name === "type") {
             typeCode.push(field.value);
           } else if (buildingDTOFields.includes(field.name)) {
             data[field.name] = field.value;
           }
         });
-        data["typeCode"] = typeCode;
+        if (typeCode.length > 0) {
+          data["type"] = typeCode.join(",");
+        }
         const uploadImage = $("#image").val();
         if (!isBlank(uploadImage) && uploadImage.indexOf("data:") === 0) {
-          data["uploadImage"] = uploadImage;
+          const base64Data = uploadImage.split(",")[1];
+          data["image"] = base64Data;
         }
         const isUpdate = !isBlank(data["id"]);
         if (!validateData(data)) {

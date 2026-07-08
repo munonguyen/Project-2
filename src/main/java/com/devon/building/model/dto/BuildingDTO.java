@@ -26,11 +26,11 @@ public class BuildingDTO {
   @Pattern(
       regexp = "QUAN_1|QUAN_2|QUAN_3|QUAN_4|QUAN_5|QUAN_10|QUAN_11|QUAN_12",
       message = "Quận không hợp lệ")
-  String districtId;
+  String district;
 
   @NotNull(message = "Giá thuê không được để trống")
   @Min(value = 0, message = "Giá thuê phải lớn hơn hoặc bằng 0")
-  Long rentPrice;
+  Long price;
 
   Long floorArea;
   String structure;
@@ -42,7 +42,6 @@ public class BuildingDTO {
   Double brokerageFee;
   String note;
   byte[] image;
-  String uploadImage;
   String managerName;
 
   @Pattern(regexp = "^\\s*$|\\d{10}", message = "Số điện thoại quản lý phải có 10 chữ số")
@@ -56,6 +55,6 @@ public class BuildingDTO {
       message = "Diện tích thuê không hợp lệ (VD: 100,200,300)")
   String rentArea;
 
-  @NotEmpty(message = "Mã loại tòa nhà là bắt buộc")
-  List<String> typeCode;
+  @NotBlank(message = "Mã loại tòa nhà là bắt buộc")
+  String type;
 }

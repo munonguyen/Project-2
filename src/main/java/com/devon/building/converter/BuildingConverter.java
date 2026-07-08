@@ -1,5 +1,6 @@
 package com.devon.building.converter;
 
+
 import com.devon.building.builder.BuildingSearchBuilder;
 import com.devon.building.entity.Building;
 import com.devon.building.enums.District;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Component;
 public class BuildingConverter {
 
   private final ModelMapper modelMapper;
+
+
 
   public BuildingSearchBuilder toBuildingSearchBuilder(BuildingSearchRequest request) {
     return BuildingSearchBuilder.builder()
@@ -41,9 +44,7 @@ public class BuildingConverter {
   }
 
   public Building toBuildingEntity(BuildingDTO buildingDTO) {
-    Building building = modelMapper.map(buildingDTO, Building.class);
-    building.setCreatedDate(new java.util.Date());
-    return building;
+    return modelMapper.map(buildingDTO, Building.class);
   }
 
   public void updateBuildingEntity(BuildingDTO buildingDTO, Building buildingEntity) {
@@ -61,6 +62,14 @@ public class BuildingConverter {
               .filter(it -> it != null && !it.isBlank())
               .collect(Collectors.joining(", ")));
     }
+    
+    if (buildingEntity.getRentAreas() != null && !buildingEntity.getRentAreas().isEmpty()) {
+      buildingSearchResponse.setRentArea(
+          buildingEntity.getRentAreas().stream()
+              .map(item -> item.getValue().toString())
+              .collect(Collectors.joining(", ")));
+    }
+    
     return buildingSearchResponse;
   }
 
