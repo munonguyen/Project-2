@@ -3,11 +3,13 @@ package com.devon.building.converter;
 
 import com.devon.building.builder.BuildingSearchBuilder;
 import com.devon.building.entity.Building;
+import com.devon.building.entity.RentArea;
 import com.devon.building.enums.District;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +21,6 @@ import org.springframework.stereotype.Component;
 public class BuildingConverter {
 
   private final ModelMapper modelMapper;
-
-
 
   public BuildingSearchBuilder toBuildingSearchBuilder(BuildingSearchRequest request) {
     return BuildingSearchBuilder.builder()
@@ -54,6 +54,9 @@ public class BuildingConverter {
   public BuildingSearchResponse toBuildingResponse(Building buildingEntity) {
     BuildingSearchResponse buildingSearchResponse =
         modelMapper.map(buildingEntity, BuildingSearchResponse.class);
+    buildingSearchResponse.setRentPrice((long) buildingEntity.getPrice());
+    buildingSearchResponse.setRentArea(buildRentArea(buildingEntity));
+
     Map<String, String> district = District.getDistrictMap();
     String districtName = district.get(buildingEntity.getDistrict());
     if (districtName != null) {
@@ -62,19 +65,14 @@ public class BuildingConverter {
               .filter(it -> it != null && !it.isBlank())
               .collect(Collectors.joining(", ")));
     }
-    
-    if (buildingEntity.getRentAreas() != null && !buildingEntity.getRentAreas().isEmpty()) {
-      buildingSearchResponse.setRentArea(
-          buildingEntity.getRentAreas().stream()
-              .map(item -> item.getValue().toString())
-              .collect(Collectors.joining(", ")));
-    }
-    
+
     return buildingSearchResponse;
   }
 
   public BuildingDTO toBuildingDTO(Building buildingEntity) {
-    return modelMapper.map(buildingEntity, BuildingDTO.class);
+    BuildingDTO buildingDTO = modelMapper.map(buildingEntity, BuildingDTO.class);
+    buildingDTO.setRentArea(buildRentArea(buildingEntity));
+    return buildingDTO;
   }
 
   public void parseRentAreas(Building building, String rentAreaValues) {
@@ -93,5 +91,17 @@ public class BuildingConverter {
               rentArea.setBuilding(building);
               building.getRentAreas().add(rentArea);
             });
+  }
+
+  private String buildRentArea(Building building) {
+    if (building.getRentAreas() == null || building.getRentAreas().isEmpty()) {
+      return null;
+    }
+
+    return building.getRentAreas().stream()
+        .map(RentArea::getValue)
+        .filter(Objects::nonNull)
+        .map(String::valueOf)
+        .collect(Collectors.joining(","));
   }
 }
