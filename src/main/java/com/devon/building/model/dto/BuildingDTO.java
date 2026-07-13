@@ -1,7 +1,6 @@
 package com.devon.building.model.dto;
 
 import jakarta.validation.constraints.*;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,12 +41,13 @@ public class BuildingDTO {
   Double brokerageFee;
   String note;
   byte[] image;
+  String imageBase64;
   String managerName;
 
   @Pattern(regexp = "^\\s*$|\\d{10}", message = "Số điện thoại quản lý phải có 10 chữ số")
   String managerPhoneNumber;
 
-  Long level;
+  String level;
 
   @NotBlank(message = "Diện tích thuê không được để trống")
   @Pattern(

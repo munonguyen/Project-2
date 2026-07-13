@@ -8,6 +8,7 @@ import com.devon.building.enums.District;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.response.BuildingSearchResponse;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -48,7 +49,11 @@ public class BuildingConverter {
   }
 
   public void updateBuildingEntity(BuildingDTO buildingDTO, Building buildingEntity) {
+    byte[] existingImage = buildingEntity.getImage();
     modelMapper.map(buildingDTO, buildingEntity);
+    if (buildingDTO.getImage() == null) {
+      buildingEntity.setImage(existingImage);
+    }
   }
 
   public BuildingSearchResponse toBuildingResponse(Building buildingEntity) {
@@ -72,6 +77,9 @@ public class BuildingConverter {
   public BuildingDTO toBuildingDTO(Building buildingEntity) {
     BuildingDTO buildingDTO = modelMapper.map(buildingEntity, BuildingDTO.class);
     buildingDTO.setRentArea(buildRentArea(buildingEntity));
+    if (buildingEntity.getImage() != null && buildingEntity.getImage().length > 0) {
+      buildingDTO.setImageBase64(Base64.getEncoder().encodeToString(buildingEntity.getImage()));
+    }
     return buildingDTO;
   }
 

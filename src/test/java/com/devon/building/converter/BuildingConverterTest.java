@@ -1,5 +1,6 @@
 package com.devon.building.converter;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.devon.building.entity.Building;
@@ -35,9 +36,27 @@ class BuildingConverterTest {
 
   @Test
   void toBuildingDtoMapsRentAreasForEditForm() {
-    BuildingDTO dto = buildingConverter.toBuildingDTO(buildingWithRentAreas());
+    Building building = buildingWithRentAreas();
+    building.setLevel("A");
+    building.setImage(new byte[] {1, 2, 3});
+
+    BuildingDTO dto = buildingConverter.toBuildingDTO(building);
 
     assertEquals("150,250", dto.getRentArea());
+    assertEquals("A", dto.getLevel());
+    assertEquals("AQID", dto.getImageBase64());
+  }
+
+  @Test
+  void updateBuildingEntityPreservesExistingImageWhenImageIsNotSubmitted() {
+    Building building = new Building();
+    building.setImage(new byte[] {1, 2, 3});
+    BuildingDTO dto = new BuildingDTO();
+    dto.setName("Updated building");
+
+    buildingConverter.updateBuildingEntity(dto, building);
+
+    assertArrayEquals(new byte[] {1, 2, 3}, building.getImage());
   }
 
   private Building buildingWithRentAreas() {

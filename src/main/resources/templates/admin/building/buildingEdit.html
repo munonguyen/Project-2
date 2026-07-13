@@ -281,7 +281,7 @@
                             >
                             <div class="col-xs-5">
                               <input
-                                type="number"
+                                type="text"
                                 id="level"
                                 name="level"
                                 placeholder="Nhập hạng"
@@ -550,9 +550,7 @@
 
                         <div class="form-group">
                           <div class="col-xs-12">
-                            <label class="col-xs-4 control-label" for="image"
-                              >Image</label
-                            >
+                            <label class="col-xs-4 control-label">Ảnh hiện tại</label>
                             <div class="col-xs-5 center">
                               <img
                                 id="imagePreview"
@@ -567,9 +565,8 @@
                               </p>
                               <input
                                 type="hidden"
-                                id="image"
-                                name="image"
-                                th:value="${building.image}"
+                                id="imageData"
+                                th:value="${building.imageBase64}"
                               />
                             </div>
                           </div>
@@ -579,17 +576,16 @@
                           <div class="col-xs-12">
                             <label
                               class="col-xs-4 control-label"
-                              for="image"
-                              >Upload Image</label
+                              for="imageFile"
+                              >Tải ảnh lên</label
                             >
                             <div class="col-xs-5">
                               <input
                                 type="file"
-                                id="image"
-                                name="image"
+                                id="imageFile"
+                                name="imageFile"
                                 accept="image/*"
                                 class="building-file-input"
-                                th:value="${building.image}"
                               />
                             </div>
                           </div>
@@ -636,22 +632,42 @@
     <th:block th:replace="~{admin/common/common-scripts :: jquery}"></th:block>
 
     <script type="text/javascript">
-      $("#image").on("change", function () {
-        const file = this.files && this.files[0];
-        const imagePreview = $("#imagePreview");
-        const imagePreviewPlaceholder = $("#imagePreviewPlaceholder");
+      const imageDataInput = $("#imageData");
+      const imagePreview = $("#imagePreview");
+      const imagePreviewPlaceholder = $("#imagePreviewPlaceholder");
 
-        if (!file) {
+      function showImagePreview(source) {
+        if (isBlank(source)) {
           imagePreview.hide().attr("src", "");
           imagePreviewPlaceholder.show();
           return;
         }
 
+        imagePreview.attr("src", source).show();
+        imagePreviewPlaceholder.hide();
+      }
+
+      const existingImage = imageDataInput.val();
+      if (!isBlank(existingImage)) {
+        showImagePreview("data:image/*;base64," + existingImage);
+      }
+
+      $("#imageFile").on("change", function () {
+        const file = this.files && this.files[0];
+
+        if (!file) {
+          const currentImage = imageDataInput.val();
+          showImagePreview(
+            isBlank(currentImage) ? "" : "data:image/*;base64," + currentImage,
+          );
+          return;
+        }
+
         const reader = new FileReader();
         reader.onload = function (event) {
-          imagePreview.attr("src", event.target.result).show();
-          imagePreviewPlaceholder.hide();
-          $("#image").val(event.target.result);
+          const dataUrl = event.target.result;
+          imageDataInput.val(dataUrl.split(",")[1]);
+          showImagePreview(dataUrl);
         };
         reader.readAsDataURL(file);
       });
@@ -683,8 +699,6 @@
       const nullableNumberFields = [
         "numberOfBasement",
         "floorArea",
-        "level",
-        "rentArea",
         "price",
         "brokerageFee",
       ];
@@ -775,10 +789,9 @@
         if (typeCode.length > 0) {
           data["type"] = typeCode.join(",");
         }
-        const uploadImage = $("#image").val();
-        if (!isBlank(uploadImage) && uploadImage.indexOf("data:") === 0) {
-          const base64Data = uploadImage.split(",")[1];
-          data["image"] = base64Data;
+        const imageData = imageDataInput.val();
+        if (!isBlank(imageData)) {
+          data["image"] = imageData;
         }
         const isUpdate = !isBlank(data["id"]);
         if (!validateData(data)) {
