@@ -1,6 +1,11 @@
 target/
 !.mvn/wrapper/maven-wrapper.jar
 
+# Secrets and local configurations
+*application-local*.properties
+client_secret*.json
+*.env
+
 ### STS ###
 .apt_generated
 .classpath

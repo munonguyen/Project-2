@@ -1,32 +1,30 @@
 package com.devon.building.builder;
 
-import java.util.List;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Getter
-@Setter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class BuildingSearchBuilder {
-  private String name;
-  private Long floorArea;
-  private String district;
-  private String ward;
-  private String street;
-  private String numberOfBasement;
-  private String direction;
-  private String level;
-  private Long areaFrom;
-  private Long areaTo;
-  private Long rentPriceFrom;
-  private Long rentPriceTo;
-  private String managerName;
-  private String managerPhone;
-  private Long staffId;
-  private List<String> typeCode;
+    final String name;
+    final Long floorArea;
+    final String district;
+    final String ward;
+    final String street;
+    final Integer numberOfBasement;
+    final String direction;
+    final String level;
+    final Long areaFrom;
+    final Long areaTo;
+    final Long rentPriceFrom;
+    final Long rentPriceTo;
+    final String managerName;
+    final String managerPhone;
+    final List<String> typeCode;
+    final Long staffId;
 }

@@ -1,15 +1,13 @@
 package com.devon.building.repository;
 
 import com.devon.building.entity.User;
-import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface UserRepository extends JpaRepository<User, Long> {
-  User findByUserName(String userName);
+    User findByUserName(String userName);
 
-  void deleteByIdIn(List<Long> ids);
-
-  List<User> findAllByUserRoleAndActiveTrue(String userRole);
-
-  List<User> findAllByUserRoleInAndActiveTrue(List<String> userRoles);
+    User findByUserNameAndActiveTrue(String username);
+    List<User> findAllByUserRoleAndActiveTrue(String userRole);
 }

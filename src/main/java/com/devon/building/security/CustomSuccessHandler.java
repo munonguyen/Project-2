@@ -4,8 +4,6 @@ import com.devon.building.constant.SystemConstant;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.DefaultRedirectStrategy;
@@ -13,51 +11,44 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.util.List;
+
 @Component
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-  private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+    private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
-  @Override
-  public void onAuthenticationSuccess(
-      HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-      throws IOException, ServletException {
-    handle(request, response, authentication);
-  }
-
-  @Override
-  public void handle(
-      HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-      throws IOException {
-    String targetUrl = determineTargetUrl(authentication);
-
-    if (response.isCommitted()) {
-      return;
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        handle(request, response, authentication);
     }
 
-    redirectStrategy.sendRedirect(request, response, targetUrl);
-  }
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+        String targetUrl = determineTargetUrl(authentication);
+        if (response.isCommitted()) {
+            return;
+        }
+        redirectStrategy.sendRedirect(request, response, targetUrl);
+    }
+    private String determineTargetUrl(Authentication authentication) {
+        List<String> roles = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-  private String determineTargetUrl(Authentication authentication) {
-    List<String> roles =
-        authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        if (roles.contains(SystemConstant.MANAGER_ROLE)) {
+            return SystemConstant.ADMIN_HOME;
+        }
+        if (roles.contains(SystemConstant.STAFF_ROLE)) {
+            return "/admin/buildings/list";
+        }
+        if (isUser(roles)) {
+            return "/";
+        }
 
-    if (isAdmin(roles)) {
-      return SystemConstant.ADMIN_HOME;
+        return "/403";
     }
 
-    if (isUser(roles)) {
-      return "/";
+    private boolean isUser(List<String> roles) {
+        return roles.contains(SystemConstant.USER_ROLE);
     }
-
-    return "/access-denied";
-  }
-
-  private boolean isAdmin(List<String> roles) {
-    return roles.contains(SystemConstant.MANAGER_ROLE) || roles.contains(SystemConstant.STAFF_ROLE);
-  }
-
-  private boolean isUser(List<String> roles) {
-    return roles.contains(SystemConstant.USER_ROLE);
-  }
 }

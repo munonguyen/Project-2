@@ -1,70 +1,78 @@
 package com.devon.building.controller.admin.building;
 
-import static com.devon.building.constant.SystemConstant.DISTRICT;
-import static com.devon.building.constant.SystemConstant.RENT_TYPE;
-
-import com.devon.building.converter.BuildingConverter;
-import com.devon.building.entity.Building;
+import com.devon.building.constant.SystemConstant;
+import com.devon.building.entity.User;
 import com.devon.building.enums.District;
 import com.devon.building.enums.RentType;
 import com.devon.building.model.dto.BuildingDTO;
-import com.devon.building.model.dto.Request.BuildingSearchRequest;
-import com.devon.building.model.dto.response.BuildingSearchResponse;
+import com.devon.building.model.request.BuildingSearchRequest;
+import com.devon.building.model.response.BuildingSearchResponse;
 import com.devon.building.pagination.PaginationResult;
 import com.devon.building.service.BuildingService;
 import com.devon.building.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
+import com.devon.building.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin/buildings")
 @RequiredArgsConstructor
 public class BuildingController {
 
-  private final UserService userService;
-  private final BuildingConverter buildingConverter;
-  private final BuildingService buildingService;
+    private final UserService userService;
+    private final BuildingService buildingService;
+    private static final String DISTRICT = "districts";
+    private static final String RENT_TYPE = "rentTypes";
 
-  @GetMapping("/list")
-  public ModelAndView getAllBuilding(
-      @ModelAttribute BuildingSearchRequest buildingSearchRequest,
-      @RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "10") int maxResult,
-      @RequestParam(defaultValue = "5") int maxNavigationPage) {
-    ModelAndView modelAndView = new ModelAndView("admin/building/buildingList");
-    modelAndView.addObject("staffs", userService.loadStaffs());
-    modelAndView.addObject(DISTRICT, District.getDistrictMap());
-    modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
-    PaginationResult<BuildingSearchResponse> result =
-        buildingService.getAllBuildings(buildingSearchRequest, page, maxResult, maxNavigationPage);
-    modelAndView.addObject("paginationResult", result);
-    modelAndView.addObject("buildingList", result.getList());
-    return modelAndView;
-  }
+    @GetMapping("/list")
+    public ModelAndView getAllBuildings(@RequestParam(value = "page", defaultValue = "1") String pageStr, @ModelAttribute BuildingSearchRequest buildingSearchRequest){
+        ModelAndView modelAndView = new ModelAndView("admin/building/buildingList");
 
-  @GetMapping("/edit")
-  public ModelAndView getEditbuilding() {
-    ModelAndView modelAndView = new ModelAndView("admin/building/buildingEdit");
-    modelAndView.addObject(DISTRICT, District.getDistrictMap());
-    modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
-    modelAndView.addObject("building", new BuildingDTO());
-    return modelAndView;
-  }
+        if(SecurityUtils.getAuthorities().contains(SystemConstant.STAFF_ROLE)){
+            User user = userService.getUserInfo(SecurityUtils.getCurrentUsername());
+            buildingSearchRequest.setStaffId(user.getId());
+        }
+        int page = 1;
+        try{
+            page = Integer.parseInt(pageStr);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        buildingSearchRequest.setPage(page);
+        modelAndView.addObject("staffs", userService.loadStaff());
+        modelAndView.addObject(DISTRICT, District.getDistrictMap());
+        modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
+        modelAndView.addObject("buildingSearchRequest", buildingSearchRequest);
+        if(SecurityUtils.getAuthorities().contains(SystemConstant.STAFF_ROLE)){
+            User staff = userService.getUserInfo(SecurityUtils.getCurrentUsername());
+            buildingSearchRequest.setStaffId(staff.getId());
+        }
+        PaginationResult<BuildingSearchResponse> result = buildingService.findBuilding(buildingSearchRequest, buildingSearchRequest.getPage(), SystemConstant.MAX_PAGE_ITEM, SystemConstant.MAX_NAVIGATION_PAGE);
+        modelAndView.addObject("result", result);
 
-  @GetMapping("/{id}/update")
-  public ModelAndView getUpdateBuildings(@PathVariable Long id) {
-    ModelAndView modelAndView = new ModelAndView("admin/building/buildingEdit");
-    modelAndView.addObject(DISTRICT, District.getDistrictMap());
-    modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
-    try {
-      Building building = buildingService.findById(id);
-      modelAndView.addObject("building", buildingConverter.toBuildingDTO(building));
-    } catch (EntityNotFoundException e) {
-      modelAndView.setViewName("redirect:/admin/buildings/list");
+        return modelAndView;
     }
-    return modelAndView;
-  }
+
+    @GetMapping("/edit")
+    public ModelAndView getEditBuildings(@ModelAttribute("buildingEdit") BuildingDTO buildingDTO){
+        ModelAndView modelAndView = new ModelAndView("admin/building/buildingEdit");
+        modelAndView.addObject(DISTRICT, District.getDistrictMap());
+        modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
+        modelAndView.addObject("building", new BuildingDTO());
+        return modelAndView;
+    }
+
+    @GetMapping("/{id}/update")
+    public ModelAndView getUpdateBuilding(@PathVariable Long id){
+        ModelAndView modelAndView = new ModelAndView("admin/building/buildingEdit");
+        BuildingDTO buildingDTO = buildingService.findById(id);
+        modelAndView.addObject("building", buildingDTO);
+        modelAndView.addObject(DISTRICT, District.getDistrictMap());
+        modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
+        return modelAndView;
+    }
 }

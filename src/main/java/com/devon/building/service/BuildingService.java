@@ -1,29 +1,26 @@
 package com.devon.building.service;
 
-import com.devon.building.entity.Building;
 import com.devon.building.model.dto.AssignBuildingDTO;
 import com.devon.building.model.dto.BuildingDTO;
-import com.devon.building.model.dto.Request.BuildingSearchRequest;
 import com.devon.building.model.dto.ResponseDTO;
-import com.devon.building.model.dto.response.BuildingSearchResponse;
-import com.devon.building.model.dto.response.StaffResponseDTO;
+import com.devon.building.model.request.BuildingSearchRequest;
+import com.devon.building.model.response.BuildingSearchResponse;
 import com.devon.building.pagination.PaginationResult;
+
 import java.util.List;
 
 public interface BuildingService {
+    PaginationResult<BuildingSearchResponse> findBuilding(BuildingSearchRequest buildingSearchRequest, int page, int maxPageItem, int maxNavigationPage);
 
-  PaginationResult<BuildingSearchResponse> getAllBuildings(
-      BuildingSearchRequest buildingSearchRequest, int page, int maxResult, int maxNavigationPage);
+    ResponseDTO createBuilding(BuildingDTO buildingDTO);
 
-  Building createBuilding(BuildingDTO dto);
+    ResponseDTO updateBuilding(BuildingDTO buildingDTO);
 
-  Building updateBuilding(BuildingDTO dto);
+    ResponseDTO deleteBuilding(List<Long> ids);
 
-  Building findById(Long id);
+    BuildingDTO findById(Long id);
 
-  void deleteBuilding(List<Long> ids);
+    ResponseDTO loadStaffs(Long buildingId);
 
-  ResponseDTO<List<StaffResponseDTO>> loadStaffs(Long buildingId);
-
-  Building saveAssignBuilding(AssignBuildingDTO assignBuildingDTO);
+    ResponseDTO assignmentBuilding(AssignBuildingDTO assignBuildingDTO);
 }

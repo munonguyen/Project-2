@@ -1,17 +1,18 @@
 package com.devon.building.model.dto;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponseDTO<T> {
-  private T data;
-  private String message;
-  private List<String> detail;
+public class ResponseDTO {
+    private Object data;
+    private String message;
+    private List<String> detail;
 }

@@ -3,68 +3,116 @@ package com.devon.building.api.admin;
 import com.devon.building.model.dto.PasswordDTO;
 import com.devon.building.model.dto.ResponseDTO;
 import com.devon.building.model.dto.UserDTO;
+import com.devon.building.model.dto.UserLoginDTO;
+import com.devon.building.model.request.AuthenticationRequest;
+import com.devon.building.model.response.AuthenticationResponse;
+import com.devon.building.service.AuthenticationService;
 import com.devon.building.service.UserService;
+import com.devon.building.entity.User;
+import com.devon.building.repository.UserRepository;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@RequestMapping({"/users", "${api.prefix:/api}/users"})
 @RequiredArgsConstructor
-@RequestMapping("/users")
 public class UserAPI {
 
-  private final UserService userService;
+    private final UserService userService;
+    private final AuthenticationService authenticationService;
+    private final UserRepository userRepository;
 
-  @PostMapping
-  public ResponseEntity<ResponseDTO<Void>> createUser(
-      @Valid @ModelAttribute UserDTO user, BindingResult bindingResult) {
-    if (bindingResult.hasErrors()) {
-      return validationError(bindingResult);
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
+        ResponseDTO responseDTO = new ResponseDTO();
+        try {
+            AuthenticationRequest authRequest = AuthenticationRequest.builder()
+                    .username(userLoginDTO.getUserName())
+                    .password(userLoginDTO.getPassword())
+                    .build();
+            AuthenticationResponse authResponse = authenticationService.authenticate(authRequest);
+
+            responseDTO.setMessage("Đăng nhập thành công");
+            responseDTO.setData(authResponse.getToken());
+            return ResponseEntity.ok(responseDTO);
+        } catch (Exception e) {
+            responseDTO.setMessage(e.getMessage() != null ? e.getMessage() : "Tên đăng nhập hoặc mật khẩu không chính xác");
+            return ResponseEntity.badRequest().body(responseDTO);
+        }
     }
-    userService.save(user);
-    ResponseDTO<Void> responseDTO = new ResponseDTO<>();
-    responseDTO.setMessage("Tạo người dùng thành công");
-    return ResponseEntity.ok(responseDTO);
-  }
 
-  @PutMapping
-  public ResponseEntity<ResponseDTO<Void>> updateUser(
-      @Valid @RequestBody UserDTO userDTO, BindingResult bindingResult) {
-    if (bindingResult.hasErrors()) {
-      return validationError(bindingResult);
+    @PostMapping("/register")
+    public ResponseEntity<?> createUser(@Valid @RequestBody com.devon.building.model.dto.UserRegisterDTO userRegisterDTO) {
+        ResponseDTO responseDTO = new ResponseDTO();
+        try {
+            if (!userRegisterDTO.getPassword().equals(userRegisterDTO.getRetypePassword())) {
+                responseDTO.setMessage("Mật khẩu nhập lại không khớp!");
+                return ResponseEntity.badRequest().body(responseDTO);
+            }
+            User user = userService.register(userRegisterDTO);
+
+            com.devon.building.model.response.UserInfoResponse userInfoResponse = com.devon.building.model.response.UserInfoResponse.builder()
+                    .id(user.getId())
+                    .userName(user.getUserName())
+                    .fullName(user.getFullName())
+                    .phone(user.getPhone())
+                    .address(userRegisterDTO.getAddress())
+                    .dateOfBirth(userRegisterDTO.getDateOfBirth())
+                    .role(user.getUserRole())
+                    .facebookAccountId(userRegisterDTO.getFacebookAccountId())
+                    .googleAccountId(userRegisterDTO.getGoogleAccountId())
+                    .build();
+
+            responseDTO.setMessage("Đăng ký người dùng thành công");
+            responseDTO.setData(userInfoResponse);
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            responseDTO.setMessage(e.getMessage() != null ? e.getMessage() : "Đăng ký thất bại");
+            return ResponseEntity.badRequest().body(responseDTO);
+        }
     }
-    userService.update(userDTO);
-    ResponseDTO<Void> responseDTO = new ResponseDTO<>();
-    responseDTO.setMessage("Cập nhật người dùng thành công");
-    return ResponseEntity.ok(responseDTO);
-  }
 
-  @DeleteMapping
-  public ResponseEntity<ResponseDTO<Void>> deleteUsers(@RequestBody List<Long> idList) {
-    if (!idList.isEmpty()) {
-      userService.delete(idList);
+    @PostMapping
+    public ResponseEntity<?> addUser(@RequestBody UserDTO userDTO) {
+        ResponseDTO responseDTO = new ResponseDTO();
+        try {
+            userService.save(userDTO);
+            responseDTO.setMessage("Thêm người dùng thành công");
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            responseDTO.setMessage(e.getMessage());
+            return ResponseEntity.badRequest().body(responseDTO);
+        }
     }
-    ResponseDTO<Void> responseDTO = new ResponseDTO<>();
-    responseDTO.setMessage("Xóa người dùng thành công");
-    return ResponseEntity.ok(responseDTO);
-  }
 
-  @PutMapping("/password/{id}")
-  public ResponseEntity<ResponseDTO<Void>> updateUser(
-      @PathVariable Long id, @RequestBody PasswordDTO passwordDTO) {
-    ResponseDTO<Void> responseDTO = new ResponseDTO<>();
-    return ResponseEntity.ok(responseDTO);
-  }
+    @PutMapping
+    public ResponseEntity<?> updateUser(@RequestBody UserDTO userDTO) {
+        ResponseDTO responseDTO = new ResponseDTO();
+        try {
+            userService.update(userDTO);
+            responseDTO.setMessage("Cập nhật người dùng thành công");
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            responseDTO.setMessage(e.getMessage());
+            return ResponseEntity.badRequest().body(responseDTO);
+        }
+    }
 
-  private ResponseEntity<ResponseDTO<Void>> validationError(BindingResult bindingResult) {
-    ResponseDTO<Void> responseDTO = new ResponseDTO<>();
-    responseDTO.setMessage("Dữ liệu không hợp lệ");
-    responseDTO.setDetail(
-        bindingResult.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList());
-    return ResponseEntity.badRequest().body(responseDTO);
-  }
+    @DeleteMapping
+    public ResponseEntity<?> deleteUsers(@RequestBody List<Long> idList) {
+        if (!idList.isEmpty()) {
+            userService.delete(idList);
+        }
+        return ResponseEntity.ok().body("{ \"message\": \"Xóa người dùng thành công\" }");
+    }
+
+    @PutMapping("/password/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody PasswordDTO passwordDTO) {
+        ResponseDTO responseDTO = new ResponseDTO();
+        return ResponseEntity.ok().body(responseDTO);
+    }
 }

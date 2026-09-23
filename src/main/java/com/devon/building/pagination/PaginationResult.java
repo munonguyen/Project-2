@@ -1,91 +1,121 @@
 package com.devon.building.pagination;
 
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@NoArgsConstructor
 public class PaginationResult<E> {
 
-  private int totalRecords;
-  private int currentPage;
-  private List<E> list;
-  private int maxResult;
-  private int totalPages;
-  private int maxNavigationPage;
-  private List<Integer> navigationPages;
+    private int totalRecords;
+    private int currentPage;
+    private List<E> list;
+    private int maxResult;
+    private int totalPages;
+    private int maxNavigationPage;
+    private List<Integer> navigationPages;
 
-  public PaginationResult(
-      TypedQuery<E> query,
-      TypedQuery<Long> countQuery,
-      int page,
-      int maxResult,
-      int maxNavigationPage) {
-    this(
-        query
-            .setFirstResult((Math.max(page, 1) - 1) * maxResult)
-            .setMaxResults(maxResult)
-            .getResultList(),
-        countQuery.getSingleResult().intValue(),
-        page,
-        maxResult,
-        maxNavigationPage);
-  }
+    public PaginationResult(TypedQuery<E> query, TypedQuery<Long> countQuery, int page, int maxResult, int maxNavigationPage) {
 
-  public PaginationResult(
-      List<E> list, int totalRecords, int page, int maxResult, int maxNavigationPage) {
-    this.list = list;
-    this.totalRecords = totalRecords;
-    this.maxResult = maxResult;
-    this.currentPage = Math.max(page, 1);
-    this.totalPages = maxResult == 0 ? 0 : (int) Math.ceil((double) totalRecords / maxResult);
-    this.maxNavigationPage = Math.min(maxNavigationPage, totalPages);
-    calcNavigationPages();
-  }
+        this.maxResult = maxResult;
+        this.currentPage = Math.max(page, 1);
 
-  private void calcNavigationPages() {
-    navigationPages = new ArrayList<>();
+        // 1. Đếm số bản ghi
+        this.totalRecords = countQuery.getSingleResult().intValue();
 
-    int current = Math.min(currentPage, totalPages);
+        // 2. Tính tổng số trang
+        this.totalPages = (int) Math.ceil((double) totalRecords / maxResult);
 
-    int begin = current - maxNavigationPage / 2;
-    int end = current + maxNavigationPage / 2;
+        // 3. Lấy dữ liệu phân trang
+        this.list = query.setFirstResult((currentPage - 1) * maxResult).setMaxResults(maxResult).getResultList();
 
-    navigationPages.add(1);
-
-    if (begin > 2) navigationPages.add(-1);
-
-    for (int i = begin; i <= end; i++) {
-      if (i > 1 && i < totalPages) {
-        navigationPages.add(i);
-      }
+        // 4. Tính navigation
+        this.maxNavigationPage = Math.min(maxNavigationPage, totalPages);
+        calcNavigationPages();
     }
 
-    if (end < totalPages - 2) navigationPages.add(-1);
+    public PaginationResult(Query query, int countQuery, int page, int maxResult, int maxNavigationPage) {
 
-    if (totalPages > 1) navigationPages.add(totalPages);
-  }
+        this.maxResult = maxResult;
+        this.currentPage = Math.max(page, 1);
 
-  public int getTotalPages() {
-    return totalPages;
-  }
+        // 1. Đếm số bản ghi
+        this.totalRecords = countQuery;
 
-  public int getTotalRecords() {
-    return totalRecords;
-  }
+        // 2. Tính tổng số trang
+        this.totalPages = (int) Math.ceil((double) totalRecords / maxResult);
 
-  public int getCurrentPage() {
-    return currentPage;
-  }
+        // 3. Lấy dữ liệu phân trang
+        this.list = query.setFirstResult((currentPage - 1) * maxResult).setMaxResults(maxResult).getResultList();
 
-  public List<E> getList() {
-    return list;
-  }
+        // 4. Tính navigation
+        this.maxNavigationPage = Math.min(maxNavigationPage, totalPages);
+        calcNavigationPages();
+    }
 
-  public int getMaxResult() {
-    return maxResult;
-  }
+    private void calcNavigationPages() {
+        navigationPages = new ArrayList<>();
 
-  public List<Integer> getNavigationPages() {
-    return navigationPages;
-  }
+        int current = Math.min(currentPage, totalPages);
+
+        int begin = current - maxNavigationPage / 2;
+        int end = current + maxNavigationPage / 2;
+
+        navigationPages.add(1);
+
+        if (begin > 2) navigationPages.add(-1);
+
+        for (int i = begin; i <= end; i++) {
+            if (i > 1 && i < totalPages) {
+                navigationPages.add(i);
+            }
+        }
+
+        if (end < totalPages - 2) navigationPages.add(-1);
+
+        if (totalPages > 1) navigationPages.add(totalPages);
+    }
+
+    public int getTotalPages() {
+        return totalPages;
+    }
+
+    public int getTotalRecords() {
+        return totalRecords;
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    public List<E> getList() {
+        return list;
+    }
+
+    public int getMaxResult() {
+        return maxResult;
+    }
+
+    public List<Integer> getNavigationPages() {
+        return navigationPages;
+    }
+
+    public <T> PaginationResult<T> map(java.util.function.Function<E, T> mapper) {
+        PaginationResult<T> result = new PaginationResult<>();
+        result.setMaxResult(this.maxResult);
+        result.setCurrentPage(this.currentPage);
+        result.setTotalPages(this.totalPages);
+        result.setTotalRecords(this.totalRecords);
+        result.setMaxNavigationPage(this.maxNavigationPage);
+        result.setNavigationPages(this.navigationPages);
+        if (this.list != null) {
+            result.setList(this.list.stream().map(mapper).toList());
+        }
+        return result;
+    }
 }
