@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${customer.id != null ? 'Cập nhật khách hàng' : 'Thêm khách hàng'}">Thông tin khách hàng</title>
+  <th:block th:replace="~{admin/common/header :: header}"></th:block>
+</head>
+<body class="no-skin" style="font-family: 'Abel', sans-serif;">
+<th:block th:replace="~{admin/common/menu :: menu}"></th:block>
+<div class="main-container" id="main-container">
+  <script type="text/javascript">
+    try {
+      ace.settings.check('main-container', 'fixed')
+    } catch (e) {
+    }
+  </script>
+  <th:block th:replace="~{admin/common/sidebar :: sidebar}"></th:block>
+  <div class="main-content">
+    <div class="main-content-inner">
+      <div class="breadcrumbs" id="breadcrumbs">
+        <script type="text/javascript">
+          try { ace.settings.check('breadcrumbs', 'fixed') } catch (e) { }
+        </script>
+
+        <ul class="breadcrumb">
+          <li>
+            <i class="ace-icon fa fa-home home-icon"></i>
+            <a href="/">Home</a>
+          </li>
+          <li>
+            <a th:href="@{/admin/customers/list}">Danh sách khách hàng</a>
+          </li>
+          <li class="active" th:text="${customer.id != null ? 'Cập nhật khách hàng' : 'Thêm khách hàng'}">Thông tin khách hàng</li>
+        </ul><!-- /.breadcrumb -->
+      </div>
+
+      <div class="page-content">
+        <div class="page-header">
+          <h1>
+            <span th:text="${customer.id != null ? 'Cập nhật thông tin khách hàng' : 'Thêm mới khách hàng'}">Thông tin khách hàng</span>
+            <small>
+              <i class="ace-icon fa fa-angle-double-right"></i>
+              quản lý khách hàng
+            </small>
+          </h1>
+        </div><!-- /.page-header -->
+
+        <div class="row">
+          <div class="col-xs-12">
+            <form class="form-horizontal" id="customer-edit-form" th:object="${customer}">
+              <input type="hidden" id="id" name="id" th:value="${customer.id}">
+
+              <div class="widget-box">
+                <div class="widget-header">
+                  <h4 class="widget-title">Thông tin khách hàng</h4>
+                </div>
+                <div class="widget-body">
+                  <div class="widget-main">
+
+                    <!-- Tên khách hàng -->
+                    <div class="form-group">
+                      <label for="fullName" class="col-sm-3 control-label no-padding-right">
+                        Tên khách hàng <span class="text-danger">*</span>
+                      </label>
+                      <div class="col-sm-6">
+                        <input type="text" id="fullName" name="fullName" class="form-control"
+                               placeholder="Nhập họ và tên khách hàng" th:value="${customer.fullName}" required/>
+                        <span class="error-message text-danger" id="errFullName" style="display: none;">Vui lòng nhập tên khách hàng</span>
+                      </div>
+                    </div>
+
+                    <!-- Số điện thoại -->
+                    <div class="form-group">
+                      <label for="phoneNumber" class="col-sm-3 control-label no-padding-right">
+                        Số điện thoại <span class="text-danger">*</span>
+                      </label>
+                      <div class="col-sm-6">
+                        <input type="text" id="phoneNumber" name="phoneNumber" class="form-control"
+                               placeholder="Nhập số điện thoại (10 chữ số)" th:value="${customer.phoneNumber}" required/>
+                        <span class="error-message text-danger" id="errPhoneNumber" style="display: none;">Số điện thoại không hợp lệ (10 số, bắt đầu bằng 03, 05, 07, 08, 09)</span>
+                      </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                      <label for="email" class="col-sm-3 control-label no-padding-right">Email</label>
+                      <div class="col-sm-6">
+                        <input type="email" id="email" name="email" class="form-control"
+                               placeholder="Nhập email" th:value="${customer.email}"/>
+                      </div>
+                    </div>
+
+                    <!-- Tên công ty -->
+                    <div class="form-group">
+                      <label for="companyName" class="col-sm-3 control-label no-padding-right">Tên công ty</label>
+                      <div class="col-sm-6">
+                        <input type="text" id="companyName" name="companyName" class="form-control"
+                               placeholder="Nhập tên công ty (nếu có)" th:value="${customer.companyName}"/>
+                      </div>
+                    </div>
+
+                    <!-- Nhu cầu -->
+                    <div class="form-group">
+                      <label for="demand" class="col-sm-3 control-label no-padding-right">
+                        Nhu cầu <span class="text-danger">*</span>
+                      </label>
+                      <div class="col-sm-6">
+                        <textarea id="demand" name="demand" class="form-control" rows="3"
+                                  placeholder="Nhập nhu cầu của khách hàng..." required th:text="${customer.demand}"></textarea>
+                        <span class="error-message text-danger" id="errDemand" style="display: none;">Vui lòng nhập nhu cầu khách hàng</span>
+                      </div>
+                    </div>
+
+                    <!-- Tình trạng -->
+                    <div class="form-group">
+                      <label for="status" class="col-sm-3 control-label no-padding-right">
+                        Tình trạng <span class="text-danger">*</span>
+                      </label>
+                      <div class="col-sm-6">
+                        <select name="status" id="status" class="form-control" required>
+                          <option value="">-- Chọn tình trạng --</option>
+                          <option th:each="st : ${statusMap != null ? statusMap : T(com.devon.building.enums.Status).getStatus()}"
+                                  th:value="${st.key}"
+                                  th:text="${st.value}"
+                                  th:selected="${customer != null and (st.key == customer.status or st.key == '' + customer.status)}">
+                          </option>
+                        </select>
+                        <span class="error-message text-danger" id="errStatus" style="display: none;">Vui lòng chọn tình trạng</span>
+                      </div>
+                    </div>
+
+                    <div class="clearfix form-actions" style="margin-top: 25px;">
+                      <div class="col-md-offset-3 col-md-9">
+                        <button class="btn btn-info" type="button" id="btnAddOrUpdateCustomer">
+                          <i class="ace-icon fa fa-check bigger-110"></i>
+                          <span th:text="${customer.id != null ? 'Cập nhật khách hàng' : 'Thêm khách hàng'}">Lưu thông tin</span>
+                        </button>
+                        &nbsp; &nbsp; &nbsp;
+                        <a th:href="@{/admin/customers/list}" class="btn btn-default" type="reset">
+                          <i class="ace-icon fa fa-undo bigger-110"></i>
+                          Quay lại
+                        </a>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div><!-- /.page-content -->
+    </div>
+  </div><!-- /.main-content -->
+  <th:block th:replace="~{admin/common/footer :: footer}"></th:block>
+</div>
+
+<th:block th:replace="~{admin/common/common-scripts :: jquery}"></th:block>
+<script>
+  function validateCustomerData(data) {
+    let isValid = true;
+    $('.error-message').hide();
+
+    if (!data.fullName || data.fullName.trim() === '') {
+      $('#errFullName').show();
+      isValid = false;
+    }
+
+    const regexPhone = /^(03|05|07|08|09)\d{8}$/;
+    if (!data.phoneNumber || !regexPhone.test(data.phoneNumber.trim())) {
+      $('#errPhoneNumber').show();
+      isValid = false;
+    }
+
+    if (!data.demand || data.demand.trim() === '') {
+      $('#errDemand').show();
+      isValid = false;
+    }
+
+    if (!data.status || data.status.trim() === '') {
+      $('#errStatus').show();
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  $('#btnAddOrUpdateCustomer').click(function (e) {
+    e.preventDefault();
+    const data = {};
+    const formData = $('#customer-edit-form').serializeArray();
+    $.each(formData, function (i, field) {
+      data[field.name] = field.value;
+    });
+
+    if (!validateCustomerData(data)) {
+      alert('Vui lòng kiểm tra lại các trường thông tin bắt buộc');
+      return;
+    }
+
+    let type = 'POST';
+    if (data.id != null && data.id.trim() !== '') {
+      type = 'PUT';
+    }
+
+    $.ajax({
+      url: '/api/customers',
+      type: type,
+      contentType: 'application/json',
+      timeout: 10000,
+      data: JSON.stringify(data),
+      dataType: 'json',
+      success: function (response) {
+        alert(response.message || 'Thao tác thành công');
+        window.location.href = '/admin/customers/list';
+      },
+      error: function (response) {
+        let msg = 'Có lỗi xảy ra';
+        if (response.responseJSON) {
+          if (response.responseJSON.detail && response.responseJSON.detail.length > 0) {
+            msg = response.responseJSON.detail.join('\n');
+          } else if (response.responseJSON.message) {
+            msg = response.responseJSON.message;
+          }
+        }
+        alert(msg);
+      }
+    });
+  });
+</script>
+</body>
+</html>

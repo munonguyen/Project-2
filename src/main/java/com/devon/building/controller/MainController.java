@@ -1,13 +1,16 @@
 package com.devon.building.controller;
 
 import com.devon.building.entity.BuildingEntity;
+import com.devon.building.entity.Customer;
 import com.devon.building.form.CustomerForm;
 import com.devon.building.model.CartInfo;
 import com.devon.building.model.CustomerInfo;
 import com.devon.building.model.ProductInfo;
+import com.devon.building.model.dto.CustomerDTO;
 import com.devon.building.pagination.PaginationResult;
 import com.devon.building.repository.impl.OrderRepository;
 import com.devon.building.repository.impl.ProductRepository;
+import com.devon.building.service.CustomerService;
 import com.devon.building.utils.Utils;
 import com.devon.building.validator.CustomerFormValidator;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +32,8 @@ import java.io.IOException;
 @Transactional
 public class MainController {
 
+    @Autowired
+    private CustomerService customerService;
 
     @Autowired
     private OrderRepository orderRepository;
@@ -275,5 +280,10 @@ public class MainController {
         response.getOutputStream().close();
     }
 
+    @PostMapping("/contact")
+    @ResponseBody
+    public Customer sendContact(@RequestBody @Valid CustomerDTO customerDTO) {
+        return customerService.sendDemand(customerDTO);
+    }
 
 }

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách khách hàng</title>
+  <th:block th:replace="~{admin/common/header :: header}"></th:block>
+</head>
+<body class="no-skin" style="font-family: 'Abel', sans-serif;">
+<th:block th:replace="~{admin/common/menu :: menu}"></th:block>
+<div class="main-container" id="main-container">
+  <script type="text/javascript">
+    try {
+      ace.settings.check('main-container', 'fixed')
+    } catch (e) {
+    }
+  </script>
+  <th:block th:replace="~{admin/common/sidebar :: sidebar}"></th:block>
+  <div class="main-content">
+    <div class="main-content-inner">
+      <div class="breadcrumbs" id="breadcrumbs">
+        <script type="text/javascript">
+          try { ace.settings.check('breadcrumbs', 'fixed') } catch (e) { }
+        </script>
+
+        <ul class="breadcrumb">
+          <li>
+            <i class="ace-icon fa fa-home home-icon"></i>
+            <a href="/">Home</a>
+          </li>
+          <li class="active">Danh sách khách hàng</li>
+        </ul><!-- /.breadcrumb -->
+      </div>
+
+      <div class="page-content">
+        <div class="page-header">
+          <h1>
+            List of customers
+            <small>
+              <i class="ace-icon fa fa-angle-double-right"></i>
+              quản lý khách hàng
+            </small>
+          </h1>
+        </div><!-- /.page-header -->
+
+        <div class="row">
+          <div class="col-xs-12">
+            <!-- FORM TÌM KIẾM -->
+            <form class="form-horizontal" method="GET"
+                  th:action="@{/admin/customers/list}" id="customer-search-form" th:object="${customerSearchRequest}">
+              <div class="widget-box">
+                <div class="widget-header">
+                  <h4 class="widget-title">Tìm kiếm</h4>
+
+                  <span class="widget-toolbar">
+                    <a href="#" data-action="reload">
+                      <i class="ace-icon fa fa-refresh"></i>
+                    </a>
+                    <a href="#" data-action="collapse">
+                      <i class="ace-icon fa fa-chevron-up"></i>
+                    </a>
+                    <a href="#" data-action="close">
+                      <i class="ace-icon fa fa-times"></i>
+                    </a>
+                  </span>
+                </div>
+
+                <div class="widget-body">
+                  <div class="widget-main">
+                    <input type="hidden" name="page" id="page" th:value="${customerSearchRequest != null ? customerSearchRequest.page : 1}">
+
+                    <!-- Hàng 1: Tên khách hàng & Email (Chia đều 50% - 50% cân đối) -->
+                    <div class="row">
+                      <div class="col-xs-12 col-sm-6 form-group">
+                        <label for="fullName">Tên khách hàng</label>
+                        <input type="text" id="fullName" name="fullName"
+                               class="form-control" placeholder="Nhập tên khách hàng"
+                               th:value="${customerSearchRequest != null ? (customerSearchRequest.fullName != null ? customerSearchRequest.fullName : customerSearchRequest.name) : ''}"/>
+                      </div>
+
+                      <div class="col-xs-12 col-sm-6 form-group">
+                        <label for="email">Email</label>
+                        <input type="text" id="email" name="email"
+                               class="form-control" placeholder="Nhập email"
+                               th:value="${customerSearchRequest != null ? customerSearchRequest.email : ''}"/>
+                      </div>
+                    </div>
+
+                    <!-- Hàng 2 (Dành cho Quản lý): Số điện thoại (33%), Chọn nhân viên (33%), Trạng thái (33%) -->
+                    <th:block sec:authorize="hasRole('ROLE_MANAGER')">
+                      <div class="row">
+                        <div class="col-xs-12 col-sm-4 form-group">
+                          <label for="phoneNumber">Số điện thoại</label>
+                          <input type="text" id="phoneNumber" name="phoneNumber"
+                                 class="form-control" placeholder="Nhập số điện thoại"
+                                 th:value="${customerSearchRequest != null ? customerSearchRequest.phoneNumber : ''}"/>
+                        </div>
+
+                        <div class="col-xs-12 col-sm-4 form-group">
+                          <label for="staffId">Nhân viên</label>
+                          <select name="staffId" id="staffId" class="form-control">
+                            <option value="">-- Chọn Nhân Viên --</option>
+                            <option th:each="staff : ${staffs}"
+                                    th:value="${staff.key}"
+                                    th:text="${staff.value}"
+                                    th:selected="${customerSearchRequest != null and staff.key == customerSearchRequest.staffId}">
+                            </option>
+                          </select>
+                        </div>
+
+                        <div class="col-xs-12 col-sm-4 form-group">
+                          <label for="status">Trạng thái</label>
+                          <select name="status" id="status" class="form-control">
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option th:each="st : ${statusMap != null ? statusMap : (statuses != null ? statuses : (status != null ? status : T(com.devon.building.enums.Status).getStatus()))}"
+                                    th:value="${st.key}"
+                                    th:text="${st.value}"
+                                    th:selected="${customerSearchRequest != null and customerSearchRequest.status != null and (st.key == customerSearchRequest.status.name() or st.key == customerSearchRequest.status.toString())}">
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                    </th:block>
+
+                    <!-- Hàng 2 (Dành cho Nhân viên): Chỉ gồm Số điện thoại (50%) & Trạng thái (50%) cân đối, không được chọn nhân viên -->
+                    <th:block sec:authorize="!hasRole('ROLE_MANAGER')">
+                      <div class="row">
+                        <div class="col-xs-12 col-sm-6 form-group">
+                          <label for="phoneNumberStaff">Số điện thoại</label>
+                          <input type="text" id="phoneNumberStaff" name="phoneNumber"
+                                 class="form-control" placeholder="Nhập số điện thoại"
+                                 th:value="${customerSearchRequest != null ? customerSearchRequest.phoneNumber : ''}"/>
+                        </div>
+
+                        <div class="col-xs-12 col-sm-6 form-group">
+                          <label for="statusStaff">Trạng thái</label>
+                          <select name="status" id="statusStaff" class="form-control">
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option th:each="st : ${statusMap != null ? statusMap : (statuses != null ? statuses : (status != null ? status : T(com.devon.building.enums.Status).getStatus()))}"
+                                    th:value="${st.key}"
+                                    th:text="${st.value}"
+                                    th:selected="${customerSearchRequest != null and customerSearchRequest.status != null and (st.key == customerSearchRequest.status.name() or st.key == customerSearchRequest.status.toString())}">
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                    </th:block>
+
+                    <!-- Hàng 3: Nút Tìm kiếm -->
+                    <div class="row">
+                      <div class="col-xs-12" style="margin-top: 5px;">
+                        <button class="btn btn-sm btn-success" id="btnSearchCustomer" type="button">
+                          <i class="ace-icon glyphicon glyphicon-search"></i>
+                          Tìm kiếm
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <!-- Nút Thêm và Xóa khách hàng ở góc trên bên phải -->
+            <div class="pull-right" style="margin-bottom: 12px; margin-top: 10px;">
+              <a th:href="@{/admin/customers/edit}" class="btn btn-app btn-success btn-sm" title="Thêm khách hàng">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-plus-fill" viewBox="0 0 16 16">
+                  <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                  <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/>
+                </svg>
+              </a>
+              <th:block sec:authorize="hasRole('ROLE_MANAGER')">
+                <button class="btn btn-app btn-danger btn-sm" title="Xóa khách hàng" id="btnDeleteCustomer" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-x-fill" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m6.146-2.854a.5.5 0 0 1 .708 0L14 6.293l1.146-1.147a.5.5 0 0 1 .708.708L14.707 7l1.147 1.146a.5.5 0 0 1-.708.708L14 7.707l-1.146 1.147a.5.5 0 0 1-.708-.708L13.293 7l-1.147-1.146a.5.5 0 0 1 0-.708"/>
+                  </svg>
+                </button>
+              </th:block>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr hr-18 dotted hr-double"></div>
+
+        <!-- BẢNG DANH SÁCH KHÁCH HÀNG -->
+        <div class="row">
+          <div class="col-xs-12">
+            <table id="customerList" class="table table-striped table-bordered table-hover">
+              <thead>
+              <tr>
+                <th class="center" style="width: 40px;">
+                  <label class="pos-rel">
+                    <input type="checkbox" class="ace" id="checkAll">
+                    <span class="lbl"></span>
+                  </label>
+                </th>
+                <th>Tên khách hàng</th>
+                <th>Di động</th>
+                <th>Email</th>
+                <th>Nhu cầu</th>
+                <th>Người thêm</th>
+                <th>Ngày thêm</th>
+                <th>Tình trạng</th>
+                <th class="center" style="width: 120px;">Thao tác</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="customer : ${result != null ? result.getList() : null}">
+                <td class="center">
+                  <label class="pos-rel">
+                    <input type="checkbox" class="ace" th:value="${customer.id}">
+                    <span class="lbl"></span>
+                  </label>
+                </td>
+                <td th:text="${customer.fullName}"></td>
+                <td th:text="${customer.phoneNumber}"></td>
+                <td th:text="${customer.email}"></td>
+                <td th:text="${customer.demand}"></td>
+                <td th:text="${customer.createdBy}"></td>
+                <td th:text="${customer.createdDate != null ? #dates.format(customer.createdDate, 'yyyy-MM-dd HH:mm:ss.S') : ''}"></td>
+                <!-- Tình trạng: Hiển thị chữ bình thường, không dùng màu/nhãn/badge -->
+                <td th:text="${customer.status == 'CHUA_XY_LY' or customer.status == 'CHUA_XU_LY' ? 'Chưa xử lý' : (customer.status == 'DANG_XU_LY' ? 'Đang xử lý' : (customer.status == 'DA_XU_LY' ? 'Đã xử lý' : (customer.status != null ? customer.status : '')))}"></td>
+                <td class="center">
+                  <div class="btn-group">
+                    <th:block sec:authorize="hasRole('ROLE_MANAGER')">
+                      <button class="btn btn-xs btn-success" title="Giao khách hàng"
+                              th:onclick="|assignmentCustomer(${customer.id})|">
+                        <i class="ace-icon fa fa-users"></i>
+                      </button>
+                    </th:block>
+
+                    <a th:href="@{/admin/customers/{id}/update(id=${customer.id})}" class="btn btn-xs btn-info" title="Sửa thông tin khách hàng">
+                      <i class="ace-icon fas fa-pencil-alt bigger-120"></i>
+                    </a>
+
+                    <th:block sec:authorize="hasRole('ROLE_MANAGER')">
+                      <button class="btn btn-xs btn-danger" title="Xóa khách hàng"
+                              th:onclick="|deleteCustomer(${customer.id})|">
+                        <i class="ace-icon fas fa-trash bigger-120"></i>
+                      </button>
+                    </th:block>
+                  </div>
+                </td>
+              </tr>
+              <tr th:if="${result == null or result.list == null or result.list.isEmpty()}">
+                <td colspan="9" class="center text-muted" style="padding: 25px;">
+                  Không tìm thấy khách hàng nào.
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <!-- PHÂN TRANG -->
+            <div class="page-navigator" th:if="${result != null and result.totalPages > 1}">
+              <th:block th:each="page: ${result.navigationPages}">
+                <a th:if="${page != -1}"
+                   class="nav-item"
+                   th:classappend="${page == result.currentPage} ? 'active-page' : ''"
+                   href="javascript:void(0)"
+                   th:data-page="${page}"
+                   th:text="${page}"
+                   onclick="gotoPage(this)">
+                </a>
+                <span th:if="${page == -1}" class="nav-item"> ... </span>
+              </th:block>
+            </div>
+          </div><!-- /.span -->
+        </div>
+      </div><!-- /.page-content -->
+    </div>
+  </div><!-- /.main-content -->
+  <th:block th:replace="~{admin/common/footer :: footer}"></th:block>
+</div>
+
+<!-- MODAL GIAO KHÁCH HÀNG CHO NHÂN VIÊN (CHỈ DÀNH CHO MANAGER) -->
+<th:block sec:authorize="hasRole('ROLE_MANAGER')">
+<div class="modal" tabindex="-1" role="dialog" id="assignmentCustomerModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Danh sách nhân viên</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table id="staffList" class="table table-striped table-bordered table-hover">
+          <thead>
+          <tr>
+            <th class="center" style="width: 50px;">
+              <label class="pos-rel">
+                <input type="checkbox" class="ace" id="checkAllStaff">
+                <span class="lbl"></span>
+              </label>
+            </th>
+            <th class="center">Tên nhân viên</th>
+          </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btnAssignCustomer">Giao khách hàng</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+        <input type="hidden" id="customerId" value="">
+      </div>
+    </div>
+  </div>
+</div>
+</th:block>
+
+<th:block th:replace="~{admin/common/common-scripts :: jquery}"></th:block>
+<script>
+  // Chọn tất cả checkbox trên bảng khách hàng
+  $('#checkAll').change(function () {
+    $('#customerList tbody input[type="checkbox"]').prop('checked', $(this).prop('checked'));
+  });
+
+  // Chọn tất cả checkbox trên modal nhân viên
+  $('#checkAllStaff').change(function () {
+    $('#staffList tbody input[type="checkbox"]').prop('checked', $(this).prop('checked'));
+  });
+
+  // Chuyển trang
+  function gotoPage(element){
+    $(".page-navigator .nav-item").removeClass("active-page");
+    $(element).addClass("active-page");
+    const page = $(element).data("page");
+    $('#page').val(page);
+    $('#customer-search-form').submit();
+  }
+
+  // Submit form tìm kiếm
+  $('#btnSearchCustomer').click(function (e) {
+    e.preventDefault();
+    $('#page').val(1);
+    $('#customer-search-form').submit();
+  });
+
+  // Mở modal giao khách hàng
+  function assignmentCustomer(customerId) {
+    $('#assignmentCustomerModal').modal('show');
+    $('#customerId').val(customerId);
+    loadStaff(customerId);
+  }
+
+  // Tải danh sách nhân viên
+  function loadStaff(customerId){
+    $.ajax({
+      url: '/api/customers/' + customerId + '/staff',
+      type: 'GET',
+      timeout: 10000,
+      dataType: 'json',
+      success: function (response) {
+        let row = '';
+        if(response && response.data){
+          $.each(response.data, function (i, staff){
+            row += '<tr>';
+            row += '<td class="center">';
+            row += '<label class="pos-rel"><input type="checkbox" class="ace" value="' + staff.id + '" ' + (staff.checked || '') + '><span class="lbl"></span></label>';
+            row += '</td>';
+            row += '<td class="center">' + staff.userName + '</td>';
+            row += '</tr>';
+          });
+        }
+        $('#staffList tbody').html(row);
+      },
+      error: function (response) {
+        const msg = response.responseJSON && response.responseJSON.message ? response.responseJSON.message : 'Có lỗi khi tải danh sách nhân viên';
+        alert(msg);
+      }
+    });
+  }
+
+  // Xác nhận giao khách hàng
+  $('#btnAssignCustomer').click(function (e){
+    e.preventDefault();
+    const customerId = $('#customerId').val();
+
+    if(!customerId){
+      alert("Không tìm thấy ID khách hàng");
+      return;
+    }
+    const staffIds = [];
+    $('#staffList tbody input[type="checkbox"]:checked').each(function () {
+      staffIds.push($(this).val());
+    });
+
+    const json = {
+      customerId: customerId,
+      staffIds: staffIds
+    };
+    sendRequestAssignCustomer(json);
+  });
+
+  function sendRequestAssignCustomer(json){
+    $.ajax({
+      url: '/api/customers/assign',
+      type: 'PUT',
+      timeout: 10000,
+      data: JSON.stringify(json),
+      contentType: 'application/json',
+      dataType: 'json',
+      success: function (response) {
+        alert(response.message || 'Giao khách hàng thành công');
+        $('#assignmentCustomerModal').modal('hide');
+      },
+      error: function (response) {
+        const msg = response.responseJSON && response.responseJSON.message ? response.responseJSON.message : 'Có lỗi xảy ra khi giao khách hàng';
+        alert(msg);
+      }
+    });
+  }
+
+  // Xóa 1 khách hàng
+  function deleteCustomer(customerId) {
+    if (confirm('Bạn có chắc muốn xóa khách hàng này chứ?')) {
+      requestDeleteCustomer([customerId]);
+    }
+  }
+
+  // Xóa nhiều khách hàng đã chọn
+  $('#btnDeleteCustomer').click(function (e) {
+    e.preventDefault();
+    const selectedCustomerIds = [];
+    $('#customerList tbody input[type="checkbox"]:checked').each(function () {
+      selectedCustomerIds.push($(this).val());
+    });
+
+    if (selectedCustomerIds.length === 0) {
+      alert('Vui lòng chọn ít nhất một khách hàng để xóa');
+      return;
+    }
+    if (confirm('Bạn có chắc muốn xóa các khách hàng đã chọn?')) {
+      requestDeleteCustomer(selectedCustomerIds);
+    }
+  });
+
+  function requestDeleteCustomer(selectedCustomerIds) {
+    $.ajax({
+      url: '/api/customers/' + selectedCustomerIds.join(','),
+      type: 'DELETE',
+      timeout: 10000,
+      dataType: 'json',
+      success: function (response) {
+        alert(response.message || 'Xóa khách hàng thành công');
+        window.location.reload();
+      },
+      error: function (response) {
+        const msg = response.responseJSON && response.responseJSON.message ? response.responseJSON.message : 'Có lỗi xảy ra khi xóa khách hàng';
+        alert(msg);
+      }
+    });
+  }
+</script>
+</body>
+</html>

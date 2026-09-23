@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Estate Building - Liên hệ</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}" />
+    <link rel="icon" th:href="@{/}" type="image/x-icon">
+    <th:block th:include="_header"></th:block>
+    <!-- SweetAlert2 for modern alert/notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .page-wrapper {
+            padding-top: 80px;
+            /* Offset for fixed-top navbar */
+            min-height: calc(100vh - 120px);
+        }
+
+        .intro {
+            background: linear-gradient(rgba(26, 38, 57, 0.85), rgba(26, 38, 57, 0.85)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80') center center / cover no-repeat;
+            color: #ffffff;
+            padding: 50px 0 35px 0;
+            margin-bottom: 30px;
+        }
+
+        .intro .title-page {
+            font-size: 32px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .desc-intro {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            font-size: 15px;
+        }
+
+        .desc-intro li a {
+            text-decoration: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .desc-intro li a:hover {
+            opacity: 0.8;
+        }
+
+        .intro-item span {
+            color: #35bf76;
+            font-weight: 600;
+        }
+
+        .maps_iframe {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        .box-lienhe {
+            padding-bottom: 60px;
+        }
+
+        .title-lienhe {
+            font-size: 24px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .title-lienhe::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 45px;
+            height: 3px;
+            background: #35bf76;
+            border-radius: 2px;
+        }
+
+        .desc-lienhe p {
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .desc-lienhe ul.link li {
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .block_fonticon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #eef9f2;
+            color: #35bf76;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-size: 15px;
+        }
+
+        .title-li {
+            color: #444;
+            font-size: 15px;
+        }
+
+        .title-li a {
+            text-decoration: none;
+        }
+
+        .title-li a:hover {
+            color: #35bf76 !important;
+        }
+
+        #contactForm .form-group {
+            margin-bottom: 16px;
+        }
+
+        #contactForm .form-control {
+            height: 46px;
+            border-radius: 6px;
+            border: 1px solid #dcdfe6;
+            padding: 10px 14px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        #contactForm .form-control:focus {
+            border-color: #35bf76;
+            box-shadow: 0 0 0 3px rgba(53, 191, 118, 0.15);
+        }
+
+        #contactForm button[type="submit"] {
+            background-color: #35bf76;
+            border-color: #35bf76;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        #contactForm button[type="submit"]:hover {
+            background-color: #2da464;
+            border-color: #2da464;
+        }
+
+        #contactForm button[type="submit"]:disabled {
+            background-color: #93d8b3;
+            border-color: #93d8b3;
+            cursor: not-allowed;
+        }
+
+        #contactForm .form-control.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+        }
+
+        .error-feedback {
+            font-size: 13px;
+            color: #dc3545;
+            margin-top: 5px;
+            font-weight: 500;
+            display: none;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body class="no-skin" style="font-family: 'Abel', sans-serif;">
+    <th:block th:include="_menu"></th:block>
+    <div class="page-wrapper">
+        <div class="intro text-center mb-5">
+            <div class="title-page">Liên hệ</div>
+            <div class="row">
+                <div class="col-xs-12 a-left" style="margin: 0 auto;">
+                    <ul class="desc-intro">
+                        <li class="home">
+                            <a th:href="@{/}"><span style="color:#fff">Trang chủ</span></a>
+                            <span class="mx-1" style="color:#fff"> / </span>
+                        </li>
+                        <li class="intro-item"><span>Liên hệ</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENT  -->
+        <div class="map">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class="google-map margin-bottom-30">
+                            <div class="maps_iframe">
+                                <iframe
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d10943.848976195668!2d105.51994868282964!3d21.01252561722872!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135abc60e7d3f19%3A0x2be9d7d0b5abcbf4!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBGUFQgSMOgIE7hu5lp!5e0!3m2!1svi!2s!4v1751197402710!5m2!1svi!2s"
+                                    width="600" height="450" style="width:100%; border:0;" allowfullscreen
+                                    loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-lienhe mt-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-4">
+                        <h2 class="title-lienhe"><strong>Công ty cổ phần bất động sản SkyLand</strong></h2>
+                        <div class="desc-lienhe">
+                            <p>Được thành lập vào ngày 20/08/2008 với niềm đam mê và khát vọng thành công trong lĩnh vực
+                                bất động sản. Nhờ chiến lược rõ ràng và hướng đi đúng, SkyLand đã nhanh chóng phát triển
+                                và đạt được những thành công nhất định.</p>
+                            <ul class="margin-bottom-15 link" style="list-style-type: none; padding-left: 0;">
+                                <li>
+                                    <span class="block_fonticon"><i class="fa fa-map-marker-alt icon-lienhe"></i></span>
+                                    <span class="title-li"> Khu CNC Hòa Lạc, Thạch Thất, Hà Nội</span>
+                                </li>
+                                <li>
+                                    <span class="block_fonticon"><i class="fa fa-phone-alt icon-lienhe"></i></span>
+                                    <span class="title-li">
+                                        Hotline: <a style="color: #434a6e;" class="fone"
+                                            href="tel:0345004500">0345004500</a>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="block_fonticon"><i class="fa fa-envelope icon-lienhe"></i></span>
+                                    <span class="title-li">Email: <a style="color: #434a6e;"
+                                            href="mailto:youngxv2004@gmail.com">youngxv2004@gmail.com</a></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <h2 class="title-lienhe"><strong>Liên hệ với chúng tôi</strong></h2>
+                        <form id="contactForm" class="form-horizontal" novalidate>
+                            <div class="form-group">
+                                <div>
+                                    <input type="text" class="form-control" placeholder="Họ và tên *" name="fullName" id="fullName">
+                                    <div class="error-feedback text-danger" id="fullNameError"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div>
+                                    <input type="email" class="form-control" placeholder="Email" name="email" id="email">
+                                    <div class="error-feedback text-danger" id="emailError"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div>
+                                    <input type="text" class="form-control" placeholder="Số điện thoại *" name="customerPhone" id="customerPhone">
+                                    <div class="error-feedback text-danger" id="customerPhoneError"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div>
+                                    <input type="text" class="form-control" placeholder="Nhu cầu *" name="demand" id="demand">
+                                    <div class="error-feedback text-danger" id="demandError"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div>
+                                    <button type="submit" id="btnSubmitContact" class="btn btn-primary px-4">
+                                        <span id="btnSpinner" class="spinner-border spinner-border-sm d-none mr-1"
+                                            role="status" aria-hidden="true"></span>
+                                        <span id="btnText">Gửi liên hệ</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:insert="~{_footer :: footer}"></th:block>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const contactForm = document.getElementById('contactForm');
+            const submitBtn = document.getElementById('btnSubmitContact');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const btnText = document.getElementById('btnText');
+
+            if (!contactForm) return;
+
+            // Xóa lỗi khi người dùng bắt đầu gõ vào input
+            ['fullName', 'customerPhone', 'demand'].forEach(fieldName => {
+                const input = contactForm.elements[fieldName];
+                if (input) {
+                    input.addEventListener('input', function () {
+                        clearFieldError(fieldName);
+                    });
+                }
+            });
+
+            contactForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const fullName = contactForm.elements['fullName'].value.trim();
+                const email = contactForm.elements['email'].value.trim();
+                const customerPhone = contactForm.elements['customerPhone'].value.trim();
+                const demand = contactForm.elements['demand'].value.trim();
+
+                let isValid = true;
+                clearAllErrors();
+
+                // 1. Validate Họ và tên
+                if (!fullName) {
+                    showFieldError('fullName', 'Họ và tên không được để trống.');
+                    isValid = false;
+                }
+
+                // 2. Validate Số điện thoại
+                const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+                if (!customerPhone) {
+                    showFieldError('customerPhone', 'Số điện thoại không được để trống.');
+                    isValid = false;
+                } else if (!phoneRegex.test(customerPhone)) {
+                    showFieldError('customerPhone', 'Số điện thoại không hợp lệ (gồm 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09).');
+                    isValid = false;
+                }
+
+                // 3. Validate Nhu cầu
+                if (!demand) {
+                    showFieldError('demand', 'Nhu cầu không được để trống.');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    return;
+                }
+
+                // Trạng thái Loading trên nút bấm
+                submitBtn.disabled = true;
+                if (btnSpinner) btnSpinner.classList.remove('d-none');
+                if (btnText) btnText.textContent = ' Đang gửi...';
+
+                // Chuẩn bị payload chuẩn CustomerDTO (demand)
+                const payload = {
+                    fullName: fullName,
+                    email: email,
+                    phoneNumber: customerPhone,
+                    demand: demand
+                };
+
+                try {
+                    const response = await fetch('/contact', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        showAlert('success', 'Gửi thành công!', 'Cảm ơn bạn đã liên hệ. Chúng tôi sẽ phản hồi trong thời gian sớm nhất!');
+                        contactForm.reset();
+                        clearAllErrors();
+                    } else {
+                        const errorData = await response.json().catch(() => null);
+                        if (errorData) {
+                            if (errorData.message && errorData.message.includes('Số điện thoại')) {
+                                showFieldError('customerPhone', errorData.message);
+                            } else if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
+                                errorData.detail.forEach(detail => {
+                                    if (detail.includes('fullName')) showFieldError('fullName', detail.split(':')[1] || detail);
+                                    else if (detail.includes('phoneNumber')) showFieldError('customerPhone', detail.split(':')[1] || detail);
+                                    else if (detail.includes('demand')) showFieldError('demand', detail.split(':')[1] || detail);
+                                    else showAlert('error', 'Lỗi', detail);
+                                });
+                            } else {
+                                showAlert('error', 'Thông báo lỗi', errorData.message || 'Gửi liên hệ thất bại.');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi gửi liên hệ:', error);
+                    showAlert('error', 'Lỗi kết nối', 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng!');
+                } finally {
+                    submitBtn.disabled = false;
+                    if (btnSpinner) btnSpinner.classList.add('d-none');
+                    if (btnText) btnText.textContent = 'Gửi liên hệ';
+                }
+            });
+
+            function showFieldError(fieldName, message) {
+                const input = contactForm.elements[fieldName];
+                const errorDiv = document.getElementById(fieldName + 'Error');
+                if (input) input.classList.add('is-invalid');
+                if (errorDiv) {
+                    errorDiv.textContent = message;
+                    errorDiv.style.display = 'block';
+                }
+            }
+
+            function clearFieldError(fieldName) {
+                const input = contactForm.elements[fieldName];
+                const errorDiv = document.getElementById(fieldName + 'Error');
+                if (input) input.classList.remove('is-invalid');
+                if (errorDiv) {
+                    errorDiv.textContent = '';
+                    errorDiv.style.display = 'none';
+                }
+            }
+
+            function clearAllErrors() {
+                ['fullName', 'customerPhone', 'demand'].forEach(clearFieldError);
+            }
+
+            function showAlert(icon, title, message) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: icon,
+                        title: title,
+                        html: message,
+                        confirmButtonColor: '#35bf76'
+                    });
+                } else {
+                    alert(title + ': ' + message.replace(/<br>/g, '\n'));
+                }
+            }
+        });
+    </script>
+</body>
+</html>
