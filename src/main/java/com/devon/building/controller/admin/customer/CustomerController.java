@@ -3,10 +3,12 @@ package com.devon.building.controller.admin.customer;
 import com.devon.building.constant.SystemConstant;
 import com.devon.building.entity.User;
 import com.devon.building.enums.Status;
+import com.devon.building.enums.Transaction;
 import com.devon.building.model.request.CustomerSearchRequest;
 import com.devon.building.model.response.CustomerSearchResponse;
 import com.devon.building.pagination.PaginationResult;
 import com.devon.building.service.CustomerService;
+import com.devon.building.service.TransactionService;
 import com.devon.building.service.UserService;
 import com.devon.building.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class CustomerController {
 
     private final UserService userService;
     private final CustomerService customerService;
+    private final TransactionService transactionService;
 
     @GetMapping("/list")
     public ModelAndView getAllCustomers(@RequestParam(value = "page", defaultValue = "1") String pageStr,
@@ -72,6 +75,9 @@ public class CustomerController {
         CustomerDTO customerDTO = customerService.findById(id);
         modelAndView.addObject("customer", customerDTO);
         modelAndView.addObject("statusMap", Status.getStatus());
+        modelAndView.addObject("transaction", Transaction.getStatus());
+        modelAndView.addObject("transactionCSKH",transactionService.findByCustomerIdAndCode(id,"CSKH"));
+        modelAndView.addObject("transactionDDX",transactionService.findByCustomerIdAndCode(id,"DDX"));
         return modelAndView;
     }
 }

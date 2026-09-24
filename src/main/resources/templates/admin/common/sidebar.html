@@ -55,7 +55,7 @@
         </ul>
     </th:block>
 
-    <th:block sec:authorize="hasRole('ROLE_MANAGER')">
+    <th:block sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_STAFF')">
         <ul class="nav nav-list">
             <li class="">
                 <a href="#" class="dropdown-toggle">

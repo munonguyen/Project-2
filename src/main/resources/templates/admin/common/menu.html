@@ -22,7 +22,8 @@
                     <li class="light-10">
                         <a data-toggle="dropdown" href="#" class="dropdown-toggle">
                             <img class="nav-user-photo" alt="avatar"
-                                 th:src="@{|/admin/users/userImage?userName=${#authentication.name}|}"/>
+                                 th:src="@{|/admin/users/userImage?userName=${#authentication.name}|}"
+                                 onerror="this.onerror=null;this.src='/admin/assets/avatars/user.jpg';"/>
                             <span class="user-info">
                                 <small>Welcome,
                                     <span th:text="${#authentication.name}"></span>

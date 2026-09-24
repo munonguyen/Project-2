@@ -16,27 +16,24 @@ import lombok.experimental.FieldDefaults;
 public class CustomerDTO  {
 
     Long id;
-    @NotBlank(message = "Full name must not be blank")
+    @NotBlank(message = "Họ tên không được để trống")
     String fullName;
 
     String email;
 
-    @NotBlank(message = "Phone number must not be blank")
+    @JsonAlias({"customerPhone", "phone"})
+    @NotBlank(message = "Số điện thoại không được để trống")
     @Pattern(
         regexp = "^(03|05|07|08|09)\\d{8}$", 
-        message = "Phone number is invalid (must be 10 digits starting with 03, 05, 07, 08, or 09)"
+        message = "Số điện thoại không hợp lệ (phải có 10 chữ số, bắt đầu bằng 03, 05, 07, 08 hoặc 09)"
     )
     String phoneNumber;
 
-    @NotBlank(message = "Demand must not be blank")
+    @NotBlank(message = "Nhu cầu không được để trống")
     String demand;
 
     String companyName;
 
-    @NotBlank(message="Status must not be blank")
     String status;
-
-
-
 
 }

@@ -19,7 +19,6 @@ import com.devon.building.repository.CustomerRepository;
 import com.devon.building.repository.UserRepository;
 import com.devon.building.service.CustomerService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +27,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
@@ -64,6 +62,9 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer customer = customerConverter.toCustomer(customerDTO);
         customer.setActive(true);
+        if (customer.getStatus() == null || customer.getStatus().isBlank()) {
+            customer.setStatus(String.valueOf(Status.CHUA_XY_LY));
+        }
         customerRepository.save(customer);
         ResponseDTO responseDTO = new ResponseDTO();
         responseDTO.setMessage("Tạo khách hàng thành công");

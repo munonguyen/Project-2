@@ -9,7 +9,6 @@ import com.devon.building.model.response.AuthenticationResponse;
 import com.devon.building.service.AuthenticationService;
 import com.devon.building.service.UserService;
 import com.devon.building.entity.User;
-import com.devon.building.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,6 @@ public class UserAPI {
 
     private final UserService userService;
     private final AuthenticationService authenticationService;
-    private final UserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
@@ -113,6 +111,13 @@ public class UserAPI {
     @PutMapping("/password/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody PasswordDTO passwordDTO) {
         ResponseDTO responseDTO = new ResponseDTO();
-        return ResponseEntity.ok().body(responseDTO);
+        try {
+            userService.updatePassword(id, passwordDTO);
+            responseDTO.setMessage("Đổi mật khẩu thành công!");
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            responseDTO.setMessage(e.getMessage());
+            return ResponseEntity.badRequest().body(responseDTO);
+        }
     }
 }

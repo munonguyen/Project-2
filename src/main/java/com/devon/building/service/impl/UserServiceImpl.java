@@ -6,9 +6,10 @@ import com.devon.building.model.dto.UserDTO;
 import com.devon.building.pagination.PaginationResult;
 import com.devon.building.repository.UserRepository;
 import com.devon.building.service.UserService;
+import com.devon.building.model.dto.PasswordDTO;
+import com.devon.building.utils.SecurityUtils;
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,11 +108,23 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new EntityNotFoundException("User " + userDTO.getUserName() + " not found");
         }
+
+        // Kiểm tra bảo mật: Nếu không phải MANAGER thì chỉ được sửa profile chính mình và không được đổi vai trò
+        boolean isManager = SecurityUtils.getAuthorities().contains(SystemConstant.MANAGER_ROLE);
+        if (!isManager) {
+            String currentUsername = SecurityUtils.getCurrentUsername();
+            if (currentUsername == null || !currentUsername.equals(user.getUserName())) {
+                throw new RuntimeException("Bạn không có quyền chỉnh sửa tài khoản của người khác!");
+            }
+        } else {
+            // Chỉ MANAGER mới có quyền đổi vai trò
+            if (userDTO.getRoleCode() != null && !userDTO.getRoleCode().isBlank()) {
+                user.setUserRole(userDTO.getRoleCode());
+            }
+        }
+
         if (userDTO.getFullName() != null && !userDTO.getFullName().isBlank()) {
             user.setFullName(userDTO.getFullName());
-        }
-        if (userDTO.getRoleCode() != null && !userDTO.getRoleCode().isBlank()) {
-            user.setUserRole(userDTO.getRoleCode());
         }
         user.setActive(true);
         try {
@@ -127,6 +140,45 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new RuntimeException("Invalid image data", e);
         }
+        userRepository.save(user);
+    }
+
+    @Override
+    public void updatePassword(Long id, PasswordDTO passwordDTO) {
+        if (id == null) {
+            throw new RuntimeException("ID người dùng không được để trống!");
+        }
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Không tìm thấy người dùng có ID: " + id));
+
+        boolean isManager = SecurityUtils.getAuthorities().contains(SystemConstant.MANAGER_ROLE);
+        if (!isManager) {
+            String currentUsername = SecurityUtils.getCurrentUsername();
+            if (currentUsername == null || !currentUsername.equals(user.getUserName())) {
+                throw new RuntimeException("Bạn không có quyền đổi mật khẩu của người khác!");
+            }
+        }
+
+        if (passwordDTO.getOldPassword() == null || passwordDTO.getOldPassword().isBlank()) {
+            throw new RuntimeException("Vui lòng nhập mật khẩu cũ!");
+        }
+        if (!passwordEncoder.matches(passwordDTO.getOldPassword(), user.getEncrytedPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không chính xác!");
+        }
+
+        String newPassword = passwordDTO.getNewPassword();
+        String confirmPassword = passwordDTO.getConfirmPassword();
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new RuntimeException("Vui lòng nhập mật khẩu mới!");
+        }
+        if (newPassword.length() < 6) {
+            throw new RuntimeException("Mật khẩu mới phải có ít nhất 6 ký tự!");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            throw new RuntimeException("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+        }
+
+        user.setEncrytedPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 
@@ -149,8 +201,11 @@ public class UserServiceImpl implements UserService {
     public User register(com.devon.building.model.dto.UserRegisterDTO userRegisterDTO) {
 
         String userName = userRegisterDTO.getUserName();
-        if (userName == null || userRepository.findByUserName(userName) != null) {
+        if (userName == null || userName.isBlank()) {
             throw new RuntimeException("Tên đăng nhập không được để trống!");
+        }
+        if (userRepository.findByUserName(userName) != null) {
+            throw new RuntimeException("Tên đăng nhập đã tồn tại trong hệ thống!");
         }
 
         User user = new User();

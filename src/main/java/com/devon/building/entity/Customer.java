@@ -16,9 +16,6 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "customer")
 public class Customer extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @Column(name="fullname",length=255,nullable=false)
     private String fullName;
@@ -50,9 +47,12 @@ public class Customer extends BaseEntity {
     )
     private List<User> user = new ArrayList<>();
 
+    @PrePersist
     public void prePersist() {
         if (this.active == null) {
             this.active = true;
         }
     }
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Transaction> transactions = new ArrayList<>();
 }

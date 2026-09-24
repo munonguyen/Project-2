@@ -66,7 +66,12 @@ public interface UserService {
      * @return the created {@link User} entity
      */
     User register(com.devon.building.model.dto.UserRegisterDTO userRegisterDTO);
-
-
+    /**
+     * Updates user password after validating old password and confirmation.
+     *
+     * @param id the user id
+     * @param passwordDTO data transfer object containing old, new, and confirm passwords
+     */
+    void updatePassword(Long id, com.devon.building.model.dto.PasswordDTO passwordDTO);
 
 }
