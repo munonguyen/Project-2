@@ -35,12 +35,51 @@ public class CustomOid2UserService extends OidcUserService {
         OidcUser oidcUser = super.loadUser(userRequest);
         log.info("OidcUser attributes: {}", oidcUser.getAttributes());
         String email = extractEmail(oidcUser);
+        String googleAccountId = oidcUser.getSubject();
+        if (googleAccountId == null && oidcUser.getAttributes().get("sub") != null) {
+            googleAccountId = oidcUser.getAttributes().get("sub").toString();
+        }
+        if (googleAccountId != null && googleAccountId.isBlank()) {
+            googleAccountId = null;
+        }
 
-        User user;
+        User user = null;
         try {
-            user = userRepository.findByUserName(email);
+            if (googleAccountId != null) {
+                user = userRepository.findByGoogleAccountId(googleAccountId);
+            }
+            if (user == null && email != null && !email.isBlank()) {
+                user = userRepository.findByEmail(email);
+                if (user == null) {
+                    user = userRepository.findByUserName(email);
+                }
+            }
+
             if (user == null) {
-                user = createGoogleUser(oidcUser);
+                user = createGoogleUser(oidcUser, email, googleAccountId);
+            } else {
+                boolean needUpdate = false;
+                if (user.getGoogleAccountId() == null && googleAccountId != null) {
+                    user.setGoogleAccountId(googleAccountId);
+                    needUpdate = true;
+                }
+                if ((user.getEmail() == null || user.getEmail().isBlank()) && email != null && !email.isBlank()) {
+                    user.setEmail(email);
+                    needUpdate = true;
+                }
+                if (user.getImage() == null) {
+                    String pictureUrl = oidcUser.getPicture() != null ? oidcUser.getPicture() : oidcUser.getAttribute("picture");
+                    if (pictureUrl != null && !pictureUrl.isBlank()) {
+                        byte[] image = pictureFetcher.fetchGoogleProfilePicture(pictureUrl);
+                        if (image != null) {
+                            user.setImage(image);
+                            needUpdate = true;
+                        }
+                    }
+                }
+                if (needUpdate) {
+                    user = userRepository.save(user);
+                }
             }
 
             if (Boolean.FALSE.equals(user.getActive())) {
@@ -57,14 +96,17 @@ public class CustomOid2UserService extends OidcUserService {
         return new CustomOAuth2User(user, oidcUser, buildAuthorities(user));
     }
 
-    private User createGoogleUser(OidcUser oidcUser) {
+    private User createGoogleUser(OidcUser oidcUser, String email, String googleAccountId) {
         User user = new User();
-        user.setUserName(oidcUser.getEmail());
-        user.setFullName(oidcUser.getFullName());
-        user.setGoogleAccountId(oidcUser.getAttributes().get("sub").toString());
+        user.setUserName(email);
+        user.setEmail(email);
+        String fullName = oidcUser.getFullName();
+        user.setFullName(fullName != null && !fullName.isBlank() ? fullName : email);
+        user.setGoogleAccountId(googleAccountId);
         user.setPhone("");
         user.setUserRole(SystemConstant.USER_ROLE);
-        user.setActive(oidcUser.getEmailVerified());
+        Boolean emailVerified = oidcUser.getEmailVerified();
+        user.setActive(emailVerified != null ? emailVerified : Boolean.TRUE);
         user.setEncrytedPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
         String pictureUrl = oidcUser.getPicture() != null ? oidcUser.getPicture() : oidcUser.getAttribute("picture");
@@ -75,7 +117,7 @@ public class CustomOid2UserService extends OidcUserService {
             }
         }
 
-        log.info("Registered new user from Google OIDC: {}", user.getEmail());
+        log.info("Registered new user from Google OIDC: {}, googleAccountId: {}", user.getEmail(), googleAccountId);
         return userRepository.save(user);
     }
 

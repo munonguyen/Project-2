@@ -29,6 +29,7 @@ public class UserDTO extends AbstractDTO {
     private Map<String, String> roleDTO;
     private String roleCode;
     private String phone;
+    private String googleAccountId;
 
     private String base64Image;
     private String imageName;

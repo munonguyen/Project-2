@@ -62,7 +62,7 @@ public class UserAPI {
                     .dateOfBirth(userRegisterDTO.getDateOfBirth())
                     .role(user.getUserRole())
                     .facebookAccountId(userRegisterDTO.getFacebookAccountId())
-                    .googleAccountId(userRegisterDTO.getGoogleAccountId())
+                    .googleAccountId(user.getGoogleAccountId() != null ? user.getGoogleAccountId() : (userRegisterDTO.getGoogleAccountId() != null && userRegisterDTO.getGoogleAccountId() != 0L ? String.valueOf(userRegisterDTO.getGoogleAccountId()) : null))
                     .build();
 
             responseDTO.setMessage("Đăng ký người dùng thành công");

@@ -91,6 +91,19 @@
                                 </div>
                             </div>
 
+                            <!-- GOOGLE ACCOUNT -->
+                            <div class="form-group" th:if="${user.id != null}">
+                                <label class="col-sm-3 control-label no-padding-right">Tài khoản Google</label>
+                                <div class="col-sm-5" style="padding-top: 7px;">
+                                    <span th:if="${user.googleAccountId != null and !#strings.isEmpty(user.googleAccountId)}" class="label label-lg label-success arrowed-in arrowed-in-right">
+                                        <i class="ace-icon fa fa-check"></i> Đã liên kết (ID: <span th:text="${user.googleAccountId}"></span>)
+                                    </span>
+                                    <span th:unless="${user.googleAccountId != null and !#strings.isEmpty(user.googleAccountId)}" class="label label-lg label-default arrowed-in arrowed-in-right">
+                                        <i class="ace-icon fa fa-times"></i> Chưa liên kết
+                                    </span>
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 <label class="col-sm-3 control-label no-padding-right">Image</label>
 

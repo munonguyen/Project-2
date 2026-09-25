@@ -121,6 +121,7 @@
                                         <th>User Name</th>
                                         <th>Full Name</th>
                                         <th>Phone</th>
+                                        <th class="text-center">Tài khoản Google</th>
                                         <th class="text-center">Thao tác</th>
                                     </tr>
                                 </thead>
@@ -134,6 +135,14 @@
                                         <td th:text="${u.userName}"></td>
                                         <td th:text="${u.fullName}"></td>
                                         <td th:text="${u.phone}"></td>
+                                        <td class="text-center">
+                                            <span th:if="${u.googleAccountId != null and !#strings.isEmpty(u.googleAccountId)}" class="label label-sm label-success" th:title="'Google ID: ' + ${u.googleAccountId}">
+                                                <i class="ace-icon fa fa-check bigger-110"></i> Đã liên kết
+                                            </span>
+                                            <span th:unless="${u.googleAccountId != null and !#strings.isEmpty(u.googleAccountId)}" class="label label-sm label-default">
+                                                Chưa liên kết
+                                            </span>
+                                        </td>
                                         <td class="text-center">
                                             <sec:authorize access="hasRole('MANAGER')">
                                                 <a class="btn btn-sm btn-primary"

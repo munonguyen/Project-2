@@ -62,7 +62,7 @@ public class User extends BaseEntity implements Serializable{
     @Transient
     private String facebookAccountId;
 
-    @Transient
+    @Column(name = "google_account_id", length = 100, unique = true)
     private String googleAccountId;
 
     @Transient

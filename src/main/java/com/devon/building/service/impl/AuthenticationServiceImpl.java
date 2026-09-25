@@ -104,14 +104,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("User Info {}", userInfo);
         
         // Onboard user
-        var user = userRepository.findByUserName(userInfo.getEmail());
+        String googleId = userInfo.getId();
+        User user = null;
+        if (googleId != null && !googleId.isBlank()) {
+            user = userRepository.findByGoogleAccountId(googleId);
+        }
+        if (user == null && userInfo.getEmail() != null && !userInfo.getEmail().isBlank()) {
+            user = userRepository.findByEmail(userInfo.getEmail());
+            if (user == null) {
+                user = userRepository.findByUserName(userInfo.getEmail());
+            }
+        }
         if (user == null) {
             user = new User();
             user.setUserName(userInfo.getEmail());
+            user.setEmail(userInfo.getEmail());
+            user.setGoogleAccountId(googleId);
             user.setFullName(userInfo.getGivenName() + " " + userInfo.getFamilyName());
             user.setUserRole(User.ROLE_MANAGER); // Default role
             user.setActive(true);
             user.setEncrytedPassword(new BCryptPasswordEncoder(10).encode(UUID.randomUUID().toString()));
+            userRepository.save(user);
+        } else if (user.getGoogleAccountId() == null && googleId != null && !googleId.isBlank()) {
+            user.setGoogleAccountId(googleId);
+            if (user.getEmail() == null || user.getEmail().isBlank()) {
+                user.setEmail(userInfo.getEmail());
+            }
             userRepository.save(user);
         }
 

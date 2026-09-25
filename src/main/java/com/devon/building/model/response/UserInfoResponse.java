@@ -36,5 +36,5 @@ public class UserInfoResponse {
     Long facebookAccountId;
 
     @JsonProperty("google_account_id")
-    Long googleAccountId;
+    String googleAccountId;
 }
