@@ -17,7 +17,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User extends BaseEntity implements Serializable{
+public class User extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -2054386655979281969L;
@@ -25,7 +25,6 @@ public class User extends BaseEntity implements Serializable{
     public static final String ROLE_MANAGER = "MANAGER";
     public static final String ROLE_EMPLOYEE = "STAFF";
     public static final String ROLE_USER = "USER";
-
 
     @Column(name = "username", length = 255, nullable = false)
     private String userName;

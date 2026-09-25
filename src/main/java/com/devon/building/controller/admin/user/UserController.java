@@ -74,7 +74,6 @@ public class UserController {
                 userDTO.setUserName(user.getUserName());
                 userDTO.setFullName(user.getFullName());
                 userDTO.setPhone(user.getPhone());
-                userDTO.setGoogleAccountId(user.getGoogleAccountId());
                 userDTO.setRoleCode(user.getUserRole());
                 userDTO.initRoles();
             }
@@ -119,7 +118,6 @@ public class UserController {
             user.setUserName(userEntity.getUserName());
             user.setFullName(userEntity.getFullName());
             user.setPhone(userEntity.getPhone());
-            user.setGoogleAccountId(userEntity.getGoogleAccountId());
             user.setRoleCode(userEntity.getUserRole());
             user.initRoles();
         }
