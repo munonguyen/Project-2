@@ -1,6 +1,5 @@
 package com.devon.building.api.admin;
 
-
 import com.devon.building.model.dto.ResponseDTO;
 import com.devon.building.model.dto.TransactionDTO;
 import com.devon.building.service.TransactionService;
@@ -16,12 +15,12 @@ public class TransactionAPI {
     private final TransactionService transactionService;
 
     @PostMapping
-    public ResponseEntity<ResponseDTO> createTransaction(@RequestBody @Valid TransactionDTO transactionDTO){
+    public ResponseEntity<ResponseDTO> createTransaction(@RequestBody @Valid TransactionDTO transactionDTO) {
         return ResponseEntity.ok().body(transactionService.createTransaction(transactionDTO));
     }
 
     @PutMapping
-    public ResponseEntity<ResponseDTO> updateTransaction(@RequestBody @Valid TransactionDTO transactionDTO){
+    public ResponseEntity<ResponseDTO> updateTransaction(@RequestBody @Valid TransactionDTO transactionDTO) {
         return ResponseEntity.ok().body(transactionService.updateTransaction(transactionDTO));
     }
 
@@ -29,6 +28,5 @@ public class TransactionAPI {
     public ResponseEntity<ResponseDTO> deleteTransaction(@PathVariable Long id) {
         return ResponseEntity.ok().body(transactionService.deleteTransaction(id));
     }
-
 
 }

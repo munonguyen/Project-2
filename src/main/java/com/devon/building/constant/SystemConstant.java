@@ -8,12 +8,12 @@ public class SystemConstant {
     public static final String MESSAGE_RESPONSE = "messageResponse";
     public static final String PASSWORD_DEFAULT = "123456";
 
-    // Dùng cho Authority đầy đủ
+    // Dùng cho Authority đầy đủ trong database và Spring Security
     public static final String USER_ROLE = "ROLE_USER";
     public static final String MANAGER_ROLE = "ROLE_MANAGER";
     public static final String STAFF_ROLE = "ROLE_STAFF";
 
-    // Dùng cho hasRole()
+    // Dùng cho hasRole() / hasAnyRole() trong WebSecurityConfig
     public static final String MANAGER = "MANAGER";
     public static final String STAFF = "STAFF";
     public static final String USER = "USER";
@@ -21,6 +21,4 @@ public class SystemConstant {
     // Dùng cho phân trang
     public static final Integer MAX_PAGE_ITEM = 5;
     public static final Integer MAX_NAVIGATION_PAGE = 10;
-
-
 }

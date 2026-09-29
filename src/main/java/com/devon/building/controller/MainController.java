@@ -282,7 +282,7 @@ public class MainController {
 
     @PostMapping("/contact")
     @ResponseBody
-    public Customer sendContact(@RequestBody @Valid CustomerDTO customerDTO) {
+    public Customer sendDemand(@RequestBody @Valid CustomerDTO customerDTO) {
         return customerService.sendDemand(customerDTO);
     }
 

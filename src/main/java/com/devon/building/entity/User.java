@@ -1,5 +1,6 @@
 package com.devon.building.entity;
 
+import com.devon.building.constant.SystemConstant;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,9 +23,9 @@ public class User extends BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -2054386655979281969L;
 
-    public static final String ROLE_MANAGER = "MANAGER";
-    public static final String ROLE_EMPLOYEE = "STAFF";
-    public static final String ROLE_USER = "USER";
+    public static final String ROLE_MANAGER = SystemConstant.MANAGER_ROLE;
+    public static final String ROLE_EMPLOYEE = SystemConstant.STAFF_ROLE;
+    public static final String ROLE_USER = SystemConstant.USER_ROLE;
 
     @Column(name = "username", length = 255, nullable = false)
     private String userName;
@@ -81,6 +82,15 @@ public class User extends BaseEntity implements Serializable {
         this.userRole = userRole;
         this.fullName = fullName;
         this.phone = phone;
+    }
+
+    @PrePersist
+    public void prePersistUser() {
+        if (getCreatedBy() == null || "anonymousUser".equalsIgnoreCase(getCreatedBy())) {
+            if (this.userName != null && !this.userName.isBlank()) {
+                setCreatedBy(this.userName);
+            }
+        }
     }
 
     @Override

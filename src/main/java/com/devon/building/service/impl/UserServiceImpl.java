@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
         user.setActive(true);
         user.setFullName(userDTO.getFullName());
         user.setEncrytedPassword(passwordEncoder.encode(SystemConstant.PASSWORD_DEFAULT));
-        user.setUserRole(User.ROLE_MANAGER);
+        user.setUserRole(SystemConstant.MANAGER_ROLE);
         if (userDTO.getFileData() != null) {
             byte[] image = null;
             try {
@@ -109,7 +109,8 @@ public class UserServiceImpl implements UserService {
             throw new EntityNotFoundException("User " + userDTO.getUserName() + " not found");
         }
 
-        // Kiểm tra bảo mật: Nếu không phải MANAGER thì chỉ được sửa profile chính mình và không được đổi vai trò
+        // Kiểm tra bảo mật: Nếu không phải MANAGER thì chỉ được sửa profile chính mình
+        // và không được đổi vai trò
         boolean isManager = SecurityUtils.getAuthorities().contains(SystemConstant.MANAGER_ROLE);
         if (!isManager) {
             String currentUsername = SecurityUtils.getCurrentUsername();
@@ -215,15 +216,16 @@ public class UserServiceImpl implements UserService {
         user.setActive(true);
         user.setEncrytedPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
 
-        String role = User.ROLE_USER;
+        String role = SystemConstant.USER_ROLE;
         if (userRegisterDTO.getRoleId() != null) {
             if (userRegisterDTO.getRoleId() == 1L) {
-                role = User.ROLE_MANAGER;
+                role = SystemConstant.MANAGER_ROLE;
             } else if (userRegisterDTO.getRoleId() == 2L) {
-                role = User.ROLE_EMPLOYEE;
+                role = SystemConstant.STAFF_ROLE;
             }
         }
         user.setUserRole(role);
+        user.setCreatedBy(userName);
 
         return userRepository.save(user);
     }

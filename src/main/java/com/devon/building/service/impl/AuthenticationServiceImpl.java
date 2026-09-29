@@ -98,12 +98,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build());
 
         log.info("TOKEN RESPONSE {}", response);
-        // Get user info
+        
         var userInfo = outboundUserClient.getUserInfo("json", response.getAccessToken());
 
         log.info("User Info {}", userInfo);
         
-        // Onboard user
+    
         String googleId = userInfo.getId();
         User user = null;
         if (googleId != null && !googleId.isBlank()) {
@@ -121,7 +121,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             user.setEmail(userInfo.getEmail());
             user.setGoogleAccountId(googleId);
             user.setFullName(userInfo.getGivenName() + " " + userInfo.getFamilyName());
-            user.setUserRole(User.ROLE_MANAGER); // Default role
+            user.setUserRole(SystemConstant.USER_ROLE); // Default role
             user.setActive(true);
             user.setEncrytedPassword(new BCryptPasswordEncoder(10).encode(UUID.randomUUID().toString()));
             userRepository.save(user);

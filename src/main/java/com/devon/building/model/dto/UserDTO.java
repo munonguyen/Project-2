@@ -1,6 +1,6 @@
 package com.devon.building.model.dto;
 
-import com.devon.building.enums.UserRole;
+import com.devon.building.constant.SystemConstant;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -9,9 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -34,6 +33,9 @@ public class UserDTO extends AbstractDTO {
     private String imageName;
 
     public void initRoles() {
-        this.roleDTO = Arrays.stream(UserRole.values()).collect(Collectors.toMap(UserRole::getCode, UserRole::getLabel));
+        this.roleDTO = new LinkedHashMap<>();
+        this.roleDTO.put(SystemConstant.MANAGER_ROLE, "ROLE_MANAGER");
+        this.roleDTO.put(SystemConstant.STAFF_ROLE, "ROLE_STAFF");
+        this.roleDTO.put(SystemConstant.USER_ROLE, "ROLE_USER");
     }
 }
