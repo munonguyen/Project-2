@@ -13,7 +13,7 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<Object> handleInvalidRequestException(InvalidRequestException e){
+    public ResponseEntity<Object> handleInvalidRequestException(InvalidRequestException e) {
         ResponseDTO responseDTO = new ResponseDTO();
         responseDTO.setMessage(e.getMessage());
         List<String> details = new ArrayList<>();
@@ -22,16 +22,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ResponseDTO> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
+    public ResponseEntity<ResponseDTO> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         ResponseDTO responseDTO = new ResponseDTO();
-        responseDTO.setMessage("Dữ liệu không hợp lệ");
         List<String> details = e.getBindingResult().getFieldErrors()
                 .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .map(error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : error.getField() + " không hợp lệ")
                 .toList();
+        responseDTO.setMessage(details.isEmpty() ? "Dữ liệu không hợp lệ" : details.get(0));
         responseDTO.setDetail(details);
         return ResponseEntity.badRequest().body(responseDTO);
     }
+
     @ExceptionHandler(DataInvalidException.class)
     public ResponseEntity<ResponseDTO> handleDataInvalidException(DataInvalidException e) {
         ResponseDTO responseDTO = new ResponseDTO();

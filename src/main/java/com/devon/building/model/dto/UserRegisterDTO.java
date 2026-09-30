@@ -16,17 +16,18 @@ import java.time.LocalDate;
 public class UserRegisterDTO {
 
     @NotBlank(message = "Họ tên không được để trống")
-    @JsonAlias({"fullName", "fullname"})
+    @JsonAlias({ "fullName", "fullname" })
     private String fullname;
 
     @NotBlank(message = "Tên đăng nhập không được để trống")
-    @Pattern(regexp = "^[^@]*$", message = "Tên đăng nhập không được là địa chỉ email")
+    @Size(min = 3, max = 100, message = "Tên đăng nhập phải có ít nhất 3 ký tự")
+    @Pattern(regexp = "^[^@]*$", message = "Tên đăng nhập không được chứa ký tự '@' hoặc là địa chỉ email")
     @JsonProperty("username")
-    @JsonAlias({"userName", "username"})
+    @JsonAlias({ "userName", "username" })
     private String userName;
 
     @JsonProperty("phone_number")
-    @JsonAlias({"phoneNumber", "phone", "phone_number"})
+    @JsonAlias({ "phoneNumber", "phone", "phone_number" })
     private String phoneNumber;
 
     private String address;
@@ -35,8 +36,9 @@ public class UserRegisterDTO {
     @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
     private String password;
 
+    @NotBlank(message = "Vui lòng nhập lại mật khẩu")
     @JsonProperty("retype_password")
-    @JsonAlias({"confirmPassword", "retypePassword", "retype_password"})
+    @JsonAlias({ "confirmPassword", "retypePassword", "retype_password" })
     private String retypePassword;
 
     @JsonProperty("date_of_birth")

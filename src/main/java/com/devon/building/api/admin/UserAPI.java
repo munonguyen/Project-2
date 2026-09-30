@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/users", "${api.prefix:/api}/users"})
+@RequestMapping({ "/users", "${api.prefix:/api}/users" })
 @RequiredArgsConstructor
 public class UserAPI {
 
@@ -38,13 +38,15 @@ public class UserAPI {
             responseDTO.setData(authResponse.getToken());
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
-            responseDTO.setMessage(e.getMessage() != null ? e.getMessage() : "Tên đăng nhập hoặc mật khẩu không chính xác");
+            responseDTO.setMessage(
+                    e.getMessage() != null ? e.getMessage() : "Tên đăng nhập hoặc mật khẩu không chính xác");
             return ResponseEntity.badRequest().body(responseDTO);
         }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> createUser(@Valid @RequestBody com.devon.building.model.dto.UserRegisterDTO userRegisterDTO) {
+    public ResponseEntity<?> createUser(
+            @Valid @RequestBody com.devon.building.model.dto.UserRegisterDTO userRegisterDTO) {
         ResponseDTO responseDTO = new ResponseDTO();
         try {
             if (!userRegisterDTO.getPassword().equals(userRegisterDTO.getRetypePassword())) {
@@ -53,7 +55,8 @@ public class UserAPI {
             }
             User user = userService.register(userRegisterDTO);
 
-            com.devon.building.model.response.UserInfoResponse userInfoResponse = com.devon.building.model.response.UserInfoResponse.builder()
+            com.devon.building.model.response.UserInfoResponse userInfoResponse = com.devon.building.model.response.UserInfoResponse
+                    .builder()
                     .id(user.getId())
                     .userName(user.getUserName())
                     .fullName(user.getFullName())
@@ -62,7 +65,11 @@ public class UserAPI {
                     .dateOfBirth(userRegisterDTO.getDateOfBirth())
                     .role(user.getUserRole())
                     .facebookAccountId(userRegisterDTO.getFacebookAccountId())
-                    .googleAccountId(user.getGoogleAccountId() != null ? user.getGoogleAccountId() : (userRegisterDTO.getGoogleAccountId() != null && userRegisterDTO.getGoogleAccountId() != 0L ? String.valueOf(userRegisterDTO.getGoogleAccountId()) : null))
+                    .googleAccountId(user.getGoogleAccountId() != null ? user.getGoogleAccountId()
+                            : (userRegisterDTO.getGoogleAccountId() != null
+                                    && userRegisterDTO.getGoogleAccountId() != 0L
+                                            ? String.valueOf(userRegisterDTO.getGoogleAccountId())
+                                            : null))
                     .build();
 
             responseDTO.setMessage("Đăng ký người dùng thành công");

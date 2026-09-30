@@ -205,12 +205,16 @@ public class UserServiceImpl implements UserService {
         if (userName == null || userName.isBlank()) {
             throw new RuntimeException("Tên đăng nhập không được để trống!");
         }
-        if (userRepository.findByUserName(userName) != null) {
+        String cleanUserName = userName.trim();
+        if (userRepository.findByUserName(cleanUserName) != null || userRepository.findByEmail(cleanUserName) != null) {
             throw new RuntimeException("Tên đăng nhập đã tồn tại trong hệ thống!");
         }
 
         User user = new User();
-        user.setUserName(userName);
+        user.setUserName(cleanUserName);
+        if (cleanUserName.contains("@")) {
+            user.setEmail(cleanUserName);
+        }
         user.setFullName(userRegisterDTO.getFullname());
         user.setPhone(userRegisterDTO.getPhoneNumber());
         user.setActive(true);
@@ -225,7 +229,7 @@ public class UserServiceImpl implements UserService {
             }
         }
         user.setUserRole(role);
-        user.setCreatedBy(userName);
+        user.setCreatedBy(cleanUserName);
 
         return userRepository.save(user);
     }
