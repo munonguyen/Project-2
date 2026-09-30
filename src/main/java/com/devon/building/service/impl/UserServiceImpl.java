@@ -206,15 +206,12 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Tên đăng nhập không được để trống!");
         }
         String cleanUserName = userName.trim();
-        if (userRepository.findByUserName(cleanUserName) != null || userRepository.findByEmail(cleanUserName) != null) {
+        if (userRepository.findByUserName(cleanUserName) != null) {
             throw new RuntimeException("Tên đăng nhập đã tồn tại trong hệ thống!");
         }
 
         User user = new User();
         user.setUserName(cleanUserName);
-        if (cleanUserName.contains("@")) {
-            user.setEmail(cleanUserName);
-        }
         user.setFullName(userRegisterDTO.getFullname());
         user.setPhone(userRegisterDTO.getPhoneNumber());
         user.setActive(true);
