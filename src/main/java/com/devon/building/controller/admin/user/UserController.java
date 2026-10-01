@@ -5,7 +5,6 @@ import com.devon.building.entity.User;
 import com.devon.building.model.dto.UserDTO;
 import com.devon.building.model.request.UserSearchRequest;
 import com.devon.building.pagination.PaginationResult;
-import com.devon.building.repository.UserRepository;
 import com.devon.building.service.UserService;
 import com.devon.building.utils.MessageUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,21 +28,21 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-
-    private final UserRepository userRepository;
-
     private final MessageUtils messageUtils;
 
     @GetMapping("/list")
-    public ModelAndView userList(@RequestParam(value = "page", defaultValue = "1") String pageStr, @RequestParam(value = "key", required = false) String key, HttpServletRequest request) {
+    public ModelAndView userList(@RequestParam(value = "page", defaultValue = "1") String pageStr,
+                                 @RequestParam(value = "key", required = false) String key,
+                                 HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView("admin/user/userList");
-        int page = 1;
+        int page;
         try {
             page = Integer.parseInt(pageStr);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            page = 1;
         }
-        PaginationResult<User> paginationResult = userService.listUserInfo(key, page, SystemConstant.MAX_PAGE_ITEM, SystemConstant.MAX_NAVIGATION_PAGE);
+        PaginationResult<User> paginationResult = userService.listUserInfo(
+                key, page, SystemConstant.MAX_PAGE_ITEM, SystemConstant.MAX_NAVIGATION_PAGE);
         UserSearchRequest userSearchRequest = new UserSearchRequest();
         userSearchRequest.setKey(key);
         userSearchRequest.setPage(page);
@@ -67,24 +66,17 @@ public class UserController {
         ModelAndView model = new ModelAndView("admin/user/userEdit");
         UserDTO userDTO = null;
         if (!userName.trim().isEmpty()) {
-            User user = userRepository.findByUserName(userName);
+            User user = userService.getUserByUserName(userName);
             if (user != null) {
-                userDTO = new UserDTO();
-                userDTO.setId(user.getId());
-                userDTO.setUserName(user.getUserName());
-                userDTO.setFullName(user.getFullName());
-                userDTO.setPhone(user.getPhone());
-                userDTO.setRoleCode(user.getUserRole());
-                userDTO.initRoles();
+                userDTO = toUserDTO(user);
             }
         }
         model.addObject("user", userDTO);
         initMessageResponse(model, request);
         return model;
-
     }
 
-    @GetMapping()
+    @GetMapping
     public ModelAndView addUser(UserDTO user, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView("admin/user/userEdit");
         user.initRoles();
@@ -94,10 +86,11 @@ public class UserController {
     }
 
     @GetMapping("/userImage")
-    public void productImage(HttpServletRequest request, HttpServletResponse response, Model model, @RequestParam(value = "userName", defaultValue = "") String userName) throws IOException {
+    public void userImage(HttpServletResponse response,
+                          @RequestParam(value = "userName", defaultValue = "") String userName) throws IOException {
         User user = null;
-        if (userName != null && !userName.isBlank()) {
-            user = userRepository.findByUserName(userName);
+        if (!userName.isBlank()) {
+            user = userService.getUserByUserName(userName);
         }
 
         if (user != null && user.getImage() != null) {
@@ -110,19 +103,21 @@ public class UserController {
     @GetMapping("/change-password/{id}")
     public ModelAndView resetPassword(@PathVariable Long id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView("admin/user/change-password");
-        UserDTO user = null;
-        if (id != null) {
-            User userEntity = userRepository.findById(id).orElseThrow();
-            user = new UserDTO();
-            user.setId(userEntity.getId());
-            user.setUserName(userEntity.getUserName());
-            user.setFullName(userEntity.getFullName());
-            user.setPhone(userEntity.getPhone());
-            user.setRoleCode(userEntity.getUserRole());
-            user.initRoles();
-        }
+        User userEntity = userService.getUserById(id);
+        UserDTO user = toUserDTO(userEntity);
         initMessageResponse(modelAndView, request);
         modelAndView.addObject("user", user);
         return modelAndView;
+    }
+
+    private UserDTO toUserDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        userDTO.setUserName(user.getUserName());
+        userDTO.setFullName(user.getFullName());
+        userDTO.setPhone(user.getPhone());
+        userDTO.setRoleCode(user.getUserRole());
+        userDTO.initRoles();
+        return userDTO;
     }
 }
