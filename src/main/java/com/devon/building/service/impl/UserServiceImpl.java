@@ -2,13 +2,18 @@ package com.devon.building.service.impl;
 
 import com.devon.building.constant.SystemConstant;
 import com.devon.building.entity.User;
+import com.devon.building.model.dto.PasswordDTO;
 import com.devon.building.model.dto.UserDTO;
+import com.devon.building.model.dto.UserRegisterDTO;
 import com.devon.building.pagination.PaginationResult;
 import com.devon.building.repository.UserRepository;
 import com.devon.building.service.UserService;
-import com.devon.building.model.dto.PasswordDTO;
 import com.devon.building.utils.SecurityUtils;
-import jakarta.persistence.*;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,7 +35,6 @@ public class UserServiceImpl implements UserService {
     private EntityManager entityManager;
 
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -41,10 +45,8 @@ public class UserServiceImpl implements UserService {
         StringBuilder countSql = new StringBuilder("SELECT COUNT(u.id) FROM " + User.class.getName() + " u ");
 
         if (key != null && !key.trim().isEmpty()) {
-            sql.append(
-                    "WHERE (LOWER(u.userName) LIKE :key OR LOWER(u.fullName) LIKE :key OR LOWER(u.phone) LIKE :key) ");
-            countSql.append(
-                    "WHERE (LOWER(u.userName) LIKE :key OR LOWER(u.fullName) LIKE :key OR LOWER(u.phone) LIKE :key) ");
+            sql.append("WHERE (LOWER(u.userName) LIKE :key OR LOWER(u.fullName) LIKE :key OR LOWER(u.phone) LIKE :key) ");
+            countSql.append("WHERE (LOWER(u.userName) LIKE :key OR LOWER(u.fullName) LIKE :key OR LOWER(u.phone) LIKE :key) ");
         }
 
         sql.append("ORDER BY u.userName DESC");
@@ -82,14 +84,13 @@ public class UserServiceImpl implements UserService {
         user.setEncrytedPassword(passwordEncoder.encode(SystemConstant.PASSWORD_DEFAULT));
         user.setUserRole(SystemConstant.MANAGER_ROLE);
         if (userDTO.getFileData() != null) {
-            byte[] image = null;
             try {
-                image = userDTO.getFileData().getBytes();
+                byte[] image = userDTO.getFileData().getBytes();
+                if (image.length > 0) {
+                    user.setImage(image);
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Invalid image data", e);
-            }
-            if (image != null && image.length > 0) {
-                user.setImage(image);
             }
         }
         entityManager.persist(user);
@@ -109,19 +110,14 @@ public class UserServiceImpl implements UserService {
             throw new EntityNotFoundException("User " + userDTO.getUserName() + " not found");
         }
 
-        // Kiểm tra bảo mật: Nếu không phải MANAGER thì chỉ được sửa profile chính mình
-        // và không được đổi vai trò
         boolean isManager = SecurityUtils.getAuthorities().contains(SystemConstant.MANAGER_ROLE);
         if (!isManager) {
             String currentUsername = SecurityUtils.getCurrentUsername();
             if (currentUsername == null || !currentUsername.equals(user.getUserName())) {
                 throw new RuntimeException("Bạn không có quyền chỉnh sửa tài khoản của người khác!");
             }
-        } else {
-            // Chỉ MANAGER mới có quyền đổi vai trò
-            if (userDTO.getRoleCode() != null && !userDTO.getRoleCode().isBlank()) {
-                user.setUserRole(userDTO.getRoleCode());
-            }
+        } else if (userDTO.getRoleCode() != null && !userDTO.getRoleCode().isBlank()) {
+            user.setUserRole(userDTO.getRoleCode());
         }
 
         if (userDTO.getFullName() != null && !userDTO.getFullName().isBlank()) {
@@ -134,9 +130,7 @@ public class UserServiceImpl implements UserService {
                 if (base64String.contains(",")) {
                     base64String = base64String.split(",")[1];
                 }
-
-                byte[] imageBytes = Base64.getDecoder().decode(base64String);
-                user.setImage(imageBytes);
+                user.setImage(Base64.getDecoder().decode(base64String));
             }
         } catch (Exception e) {
             throw new RuntimeException("Invalid image data", e);
@@ -188,8 +182,8 @@ public class UserServiceImpl implements UserService {
         for (Long id : ids) {
             Optional<User> user = userRepository.findById(id);
             user.ifPresent(value -> value.setActive(false));
-            userRepository.flush();
         }
+        userRepository.flush();
     }
 
     @Override
@@ -199,12 +193,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User register(com.devon.building.model.dto.UserRegisterDTO userRegisterDTO) {
-
+    public User register(UserRegisterDTO userRegisterDTO) {
         String userName = userRegisterDTO.getUserName();
         if (userName == null || userName.isBlank()) {
             throw new RuntimeException("Tên đăng nhập không được để trống!");
         }
+
         String cleanUserName = userName.trim();
         if (userRepository.findByUserName(cleanUserName) != null) {
             throw new RuntimeException("Tên đăng nhập đã tồn tại trong hệ thống!");
@@ -216,16 +210,7 @@ public class UserServiceImpl implements UserService {
         user.setPhone(userRegisterDTO.getPhoneNumber());
         user.setActive(true);
         user.setEncrytedPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
-
-        String role = SystemConstant.USER_ROLE;
-        if (userRegisterDTO.getRoleId() != null) {
-            if (userRegisterDTO.getRoleId() == 1L) {
-                role = SystemConstant.MANAGER_ROLE;
-            } else if (userRegisterDTO.getRoleId() == 2L) {
-                role = SystemConstant.STAFF_ROLE;
-            }
-        }
-        user.setUserRole(role);
+        user.setUserRole(SystemConstant.USER_ROLE);
         user.setCreatedBy(cleanUserName);
 
         return userRepository.save(user);
