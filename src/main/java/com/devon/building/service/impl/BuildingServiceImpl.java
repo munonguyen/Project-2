@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,7 +91,7 @@ public class BuildingServiceImpl implements BuildingService {
     @Override
     @Transactional
     public ResponseDTO deleteBuilding(List<Long> ids) {
-        if (ids == null || ids.isEmpty() || ids.contains(null)) {
+        if (ids == null || ids.isEmpty() || ids.stream().anyMatch(Objects::isNull)) {
             throw new InvalidRequestException("Không có ID tòa nhà được cung cấp");
         }
         List<BuildingEntity> buildings = buildingRepository.findAllById(ids);
