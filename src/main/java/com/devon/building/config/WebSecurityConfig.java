@@ -11,8 +11,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -20,7 +18,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
-@EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class WebSecurityConfig {
@@ -52,28 +49,48 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomOid2UserService customOid2UserService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.ignoringRequestMatchers(
+                        "/api/**",
+                        "/users/**",
+                        "/auth/**",
+                        "/contact"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users/login", "/api/users/register", "/users/login", "/users/register").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/users/login", "/api/users/register",
+                                "/users/login", "/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/contact").permitAll()
                         .requestMatchers("/admin/users/userImage").permitAll()
-                        .requestMatchers("/admin/users/change-password/**").hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
-                        .requestMatchers("/admin/users/list", "/admin/users").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers("/admin/users/{userName}").hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
-                        .requestMatchers("/admin/users/**").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers(HttpMethod.PUT, "/api/buildings/assign").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers(HttpMethod.DELETE, "/api/buildings/**").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers(HttpMethod.DELETE, "/api/customers/**").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers(HttpMethod.PUT, "/api/customers/assign").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers(HttpMethod.DELETE, "/api/transactions/**").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers("/api/buildings/**", "/api/customers/**", "/api/transactions/**").hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
-                        .requestMatchers(HttpMethod.POST, "/users", "/api/users", "/users/**", "/api/users/**").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers(HttpMethod.DELETE, "/users/**", "/api/users/**").hasRole(SystemConstant.MANAGER)
-                        .requestMatchers("/users/**", "/api/users/**").hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
-                        .requestMatchers("/admin/**").hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
+                        .requestMatchers("/admin/users/change-password/**")
+                                .hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
+                        .requestMatchers("/admin/users/list", "/admin/users")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers("/admin/users/{userName}")
+                                .hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
+                        .requestMatchers("/admin/users/**")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers(HttpMethod.PUT, "/api/buildings/assign")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers(HttpMethod.DELETE, "/api/buildings/**")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers(HttpMethod.DELETE, "/api/customers/**")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers(HttpMethod.PUT, "/api/customers/assign")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers(HttpMethod.DELETE, "/api/transactions/**")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers("/api/buildings/**", "/api/customers/**", "/api/transactions/**")
+                                .hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/users", "/api/users", "/users/**", "/api/users/**")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers(HttpMethod.DELETE, "/users/**", "/api/users/**")
+                                .hasRole(SystemConstant.MANAGER)
+                        .requestMatchers("/users/**", "/api/users/**")
+                                .hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
+                        .requestMatchers("/admin/**")
+                                .hasAnyRole(SystemConstant.STAFF, SystemConstant.MANAGER)
                         .anyRequest().permitAll())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwtConfigurer -> jwtConfigurer
@@ -82,7 +99,7 @@ public class WebSecurityConfig {
                 .exceptionHandling(ex -> ex.accessDeniedPage("/403"))
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .loginProcessingUrl("/login") // Xử lý POST /login
+                        .loginProcessingUrl("/login")
                         .successHandler(myAuthenticationSuccessHandler())
                         .failureUrl("/login?incorrectAccount")
                         .usernameParameter("userName")
@@ -97,11 +114,10 @@ public class WebSecurityConfig {
                         .invalidateHttpSession(true)
                         .logoutUrl("/admin/logout")
                         .logoutSuccessUrl("/")
-                        .permitAll()
-                ).sessionManagement(session -> session
-                        .maximumSessions(1) //Chi cho phep 1 phien dang nhap cung 1 luc
-                        .maxSessionsPreventsLogin(false)
-                );
+                        .permitAll())
+                .sessionManagement(session -> session
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false));
 
         return http.build();
     }
