@@ -69,7 +69,7 @@ public class User extends BaseEntity implements Serializable {
     private String githubAccountId;
 
     @Lob
-    @Column(name = "image", length = Integer.MAX_VALUE, nullable = true)
+    @Column(name = "image", length = Integer.MAX_VALUE)
     private byte[] image;
 
     @ManyToMany(mappedBy = "user")
@@ -95,7 +95,6 @@ public class User extends BaseEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "[" + this.userName + "," + this.encrytedPassword + "," + this.userRole + "]";
+        return "User{id=" + id + ", userName='" + userName + "', userRole='" + userRole + "', active=" + active + "}";
     }
-
 }
