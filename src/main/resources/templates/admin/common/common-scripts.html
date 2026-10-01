@@ -1,5 +1,14 @@
 <div th:fragment="jquery" class="footer-container" xmlns:th="http://www.thymeleaf.org">
     <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script>
+        $(document).ajaxSend(function (event, xhr) {
+            const token = $('meta[name="_csrf"]').attr('content');
+            const header = $('meta[name="_csrf_header"]').attr('content');
+            if (token && header) {
+                xhr.setRequestHeader(header, token);
+            }
+        });
+    </script>
     <script th:src="@{/admin/assets/js/bootstrap.min.js}"></script>
     <script th:src="@{/admin/assets/js/jquery-ui.custom.min.js}"></script>
     <script th:src="@{/admin/assets/js/jquery.ui.touch-punch.min.js}"></script>
