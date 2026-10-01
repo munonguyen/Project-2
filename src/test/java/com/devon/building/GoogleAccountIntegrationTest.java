@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +21,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ActiveProfiles("test")
 class GoogleAccountIntegrationTest {
 
     @Autowired
@@ -49,7 +52,7 @@ class GoogleAccountIntegrationTest {
 
     @Test
     void testSaveAndFindByGoogleAccountId() {
-        String testGoogleId = "109876543210987654321"; // 21-digit Google sub ID
+        String testGoogleId = "109876543210987654321";
         String testUsername = "google_user_test_" + System.currentTimeMillis();
 
         User user = new User();
@@ -114,7 +117,6 @@ class GoogleAccountIntegrationTest {
         String existingEmail = "link_test_" + System.currentTimeMillis() + "@gmail.com";
         String googleSubId = "112233445566778899001";
 
-        // User previously registered without Google
         User localUser = new User();
         localUser.setUserName(existingEmail);
         localUser.setEmail(existingEmail);
@@ -128,13 +130,11 @@ class GoogleAccountIntegrationTest {
 
         assertNull(localUser.getGoogleAccountId());
 
-        // Now find by email and simulate account linking
         User userByEmail = userRepository.findByEmail(existingEmail);
         assertNotNull(userByEmail);
         userByEmail.setGoogleAccountId(googleSubId);
         userRepository.save(userByEmail);
 
-        // Verify linked Google account can be found
         User linkedUser = userRepository.findByGoogleAccountId(googleSubId);
         assertNotNull(linkedUser);
         assertEquals(localUser.getId(), linkedUser.getId());
