@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import com.devon.building.entity.User;
 import com.devon.building.repository.UserRepository;
-import com.devon.building.repository.impl.AccountRepository;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    AccountRepository accountRepository;
     UserRepository userRepository;
 
     @Override
@@ -33,14 +31,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByUserNameAndActiveTrue(username);
 
         if (user == null) {
-            log.error("User '{}' was not found in the database", username);
-            throw new UsernameNotFoundException("User " + username + " was not found in the database");
+            log.warn("Active user '{}' was not found", username);
+            throw new UsernameNotFoundException("User " + username + " was not found or is inactive");
         }
 
-        log.info("Loaded user information for: {}", user.getUserName());
-
         List<GrantedAuthority> grantList = new ArrayList<>();
-        // Add role to authorities (e.g. ROLE_MANAGER, ROLE_STAFF)
         String role = user.getUserRole();
         if (role != null && !role.isBlank()) {
             if (!role.startsWith("ROLE_")) {
@@ -52,10 +47,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getUserName(),
                 user.getEncrytedPassword(),
-                user.getActive(),
-                true, // accountNonExpired
-                true, // credentialsNonExpired
-                true, // accountNonLocked
+                Boolean.TRUE.equals(user.getActive()),
+                true,
+                true,
+                true,
                 grantList);
     }
 }
