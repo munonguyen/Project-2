@@ -10,8 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ class GoogleAccountIntegrationTest {
     @Autowired
     private CustomOid2UserService customOid2UserService;
 
-    @MockBean
+    @MockitoBean
     private OAuth2PictureFetcher pictureFetcher;
 
     private final List<Long> createdUserIds = new ArrayList<>();
