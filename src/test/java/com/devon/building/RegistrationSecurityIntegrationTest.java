@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,6 +19,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,7 +45,7 @@ class RegistrationSecurityIntegrationTest {
 
     @Test
     void publicRegistrationCannotEscalateRoleThroughRoleIdOrRoleCode() throws Exception {
-        String username = "security_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        String username = uniqueUsername("security");
 
         String payload = """
                 {
@@ -69,5 +72,54 @@ class RegistrationSecurityIntegrationTest {
         assertNotNull(created);
         createdUserIds.add(created.getId());
         assertEquals(SystemConstant.USER_ROLE, created.getUserRole());
+    }
+
+    @Test
+    @WithMockUser(username = "manager", roles = "MANAGER")
+    void managerCreatedUserGetsRequestedValidatedRole() throws Exception {
+        String username = uniqueUsername("staff");
+        String payload = """
+                {
+                  "userName": "%s",
+                  "fullName": "Managed Staff User",
+                  "roleCode": "ROLE_STAFF"
+                }
+                """.formatted(username);
+
+        mockMvc.perform(post("/api/users")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk());
+
+        User created = userRepository.findByUserName(username);
+        assertNotNull(created);
+        createdUserIds.add(created.getId());
+        assertEquals(SystemConstant.STAFF_ROLE, created.getUserRole());
+    }
+
+    @Test
+    @WithMockUser(username = "manager", roles = "MANAGER")
+    void managerCannotCreateUnknownRole() throws Exception {
+        String username = uniqueUsername("invalidrole");
+        String payload = """
+                {
+                  "userName": "%s",
+                  "fullName": "Invalid Role User",
+                  "roleCode": "ROLE_SUPERADMIN"
+                }
+                """.formatted(username);
+
+        mockMvc.perform(post("/api/users")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest());
+
+        assertNull(userRepository.findByUserName(username));
+    }
+
+    private String uniqueUsername(String prefix) {
+        return prefix + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
 }
