@@ -15,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,9 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${user.initial-password}")
+    private String initialUserPassword;
 
     @Override
     public PaginationResult<User> listUserInfo(String key, int page, int maxResult, int maxNavigationPage) {
@@ -68,6 +72,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserByUserName(String username) {
+        return userRepository.findByUserName(username);
+    }
+
+    @Override
+    public User getUserById(Long id) {
+        if (id == null) {
+            throw new EntityNotFoundException("User id must not be null");
+        }
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User with id " + id + " not found"));
+    }
+
+    @Override
     public void save(UserDTO userDTO) {
         String userName = userDTO.getUserName();
         User user = null;
@@ -77,11 +95,14 @@ public class UserServiceImpl implements UserService {
         if (user != null) {
             throw new EntityExistsException("User with name " + userName + " already exists");
         }
+        if (initialUserPassword == null || initialUserPassword.length() < 12) {
+            throw new IllegalStateException("INITIAL_USER_PASSWORD must contain at least 12 characters");
+        }
         user = new User();
         user.setUserName(userName);
         user.setActive(true);
         user.setFullName(userDTO.getFullName());
-        user.setEncrytedPassword(passwordEncoder.encode(SystemConstant.PASSWORD_DEFAULT));
+        user.setEncrytedPassword(passwordEncoder.encode(initialUserPassword));
         user.setUserRole(SystemConstant.MANAGER_ROLE);
         if (userDTO.getFileData() != null) {
             try {
