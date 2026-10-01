@@ -11,151 +11,107 @@ import jakarta.persistence.Query;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
-import java.util.LinkedHashMap;
+import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @Primary
 public class BuildingRepositoryImpl implements BuildingRepositoryCustom {
-
     @PersistenceContext(type = PersistenceContextType.TRANSACTION)
     private EntityManager entityManager;
 
-    @Override
-    public PaginationResult<BuildingEntity> findALlBuilding(
-            BuildingSearchBuilder search,
-            int page,
-            int maxPageItem,
-            int maxNavigationPage
-    ) {
-        StringBuilder from = new StringBuilder(" FROM building b ");
-        StringBuilder where = new StringBuilder(" WHERE 1 = 1 ");
-        Map<String, Object> parameters = new LinkedHashMap<>();
-
-        if (search.getStaffId() != null) {
-            from.append(" INNER JOIN assignmentbuilding ab ON b.id = ab.buildingid ");
-            where.append(" AND ab.staffid = :staffId ");
-            parameters.put("staffId", search.getStaffId());
+    private void joinTable(BuildingSearchBuilder buildingSearchBuilder, StringBuilder sql) {
+        Long staffId = buildingSearchBuilder.getStaffId();
+        if(staffId != null) {
+            sql.append(" INNER JOIN assignmentbuilding ON b.id = assignmentbuilding.buildingid ");
         }
-
-        addLike(where, parameters, "name", "b.name", search.getName());
-        addEquals(where, parameters, "floorArea", "b.floorarea", search.getFloorArea());
-        addLike(where, parameters, "ward", "b.ward", search.getWard());
-        addLike(where, parameters, "street", "b.street", search.getStreet());
-        addEquals(where, parameters, "numberOfBasement", "b.numberofbasement", search.getNumberOfBasement());
-        addLike(where, parameters, "direction", "b.direction", search.getDirection());
-        addLike(where, parameters, "level", "b.level", search.getLevel());
-        addLike(where, parameters, "managerName", "b.managername", search.getManagerName());
-        addLike(where, parameters, "managerPhone", "b.managerphone", search.getManagerPhone());
-
-        if (search.getDistrict() != null && !search.getDistrict().isBlank()) {
-            where.append(" AND b.district = :district ");
-            parameters.put("district", search.getDistrict());
-        }
-
-        if (search.getRentPriceFrom() != null) {
-            where.append(" AND b.rentprice >= :rentPriceFrom ");
-            parameters.put("rentPriceFrom", search.getRentPriceFrom());
-        }
-        if (search.getRentPriceTo() != null) {
-            where.append(" AND b.rentprice <= :rentPriceTo ");
-            parameters.put("rentPriceTo", search.getRentPriceTo());
-        }
-
-        appendRentAreaFilter(search, where, parameters);
-        appendTypeFilter(search.getTypeCode(), where, parameters);
-
-        String dataSql = "SELECT DISTINCT b.*" + from + where + " ORDER BY b.id DESC ";
-        String countSql = "SELECT COUNT(DISTINCT b.id)" + from + where;
-
-        Query dataQuery = entityManager.createNativeQuery(dataSql, BuildingEntity.class);
-        Query countQuery = entityManager.createNativeQuery(countSql);
-        bind(dataQuery, parameters);
-        bind(countQuery, parameters);
-
-        int totalRecords = ((Number) countQuery.getSingleResult()).intValue();
-        return new PaginationResult<>(
-                dataQuery,
-                BuildingEntity.class,
-                totalRecords,
-                page,
-                maxPageItem,
-                maxNavigationPage
-        );
     }
-
-    private void appendRentAreaFilter(
-            BuildingSearchBuilder search,
-            StringBuilder where,
-            Map<String, Object> parameters
-    ) {
-        if (search.getAreaFrom() == null && search.getAreaTo() == null) {
-            return;
-        }
-
-        where.append(" AND EXISTS (SELECT 1 FROM rentarea ra WHERE ra.buildingid = b.id ");
-        if (search.getAreaFrom() != null) {
-            where.append(" AND ra.value >= :areaFrom ");
-            parameters.put("areaFrom", search.getAreaFrom());
-        }
-        if (search.getAreaTo() != null) {
-            where.append(" AND ra.value <= :areaTo ");
-            parameters.put("areaTo", search.getAreaTo());
-        }
-        where.append(") ");
-    }
-
-    private void appendTypeFilter(
-            List<String> typeCodes,
-            StringBuilder where,
-            Map<String, Object> parameters
-    ) {
-        if (typeCodes == null || typeCodes.isEmpty()) {
-            return;
-        }
-
-        where.append(" AND (");
-        for (int i = 0; i < typeCodes.size(); i++) {
-            if (i > 0) {
-                where.append(" OR ");
+    private void queryNormal(BuildingSearchBuilder buildingSearchBuilder, StringBuilder where) {
+        try {
+            Field[] field = BuildingSearchBuilder.class.getDeclaredFields();
+            for(Field item : field) {
+                item.setAccessible(true);
+                String fieldName = item.getName();
+                if(!fieldName.equals("staffId") && !fieldName.equals("district") && !fieldName.equals("typeCode") &&
+                        !fieldName.startsWith("area") && !fieldName.startsWith("rentPrice")) {
+                    Object value= item.get(buildingSearchBuilder);
+                    if(value != null && !value.toString().isBlank()) {
+                        if(value.toString().matches("\\d+(\\.\\d+)?$")) {
+                            where.append(" AND b.")
+                                    .append(fieldName.toLowerCase())
+                                    .append(" = ")
+                                    .append(value);
+                        } else {
+                            where.append(" AND b.")
+                                    .append(fieldName.toLowerCase())
+                                    .append(" LIKE '%")
+                                    .append(value)
+                                    .append("%'");
+                        }
+                    }
+                }
             }
-            String parameterName = "typeCode" + i;
-            where.append("b.type LIKE :").append(parameterName);
-            parameters.put(parameterName, "%" + typeCodes.get(i) + "%");
+        }catch(Exception ex) {
+            ex.printStackTrace();
         }
-        where.append(") ");
+
     }
 
-    private void addLike(
-            StringBuilder where,
-            Map<String, Object> parameters,
-            String parameterName,
-            String column,
-            String value
-    ) {
-        if (value == null || value.isBlank()) {
-            return;
+    private void querySpecial(BuildingSearchBuilder buildingSearchBuilder, StringBuilder where) {
+        Long staffId = buildingSearchBuilder.getStaffId();
+        if(staffId != null) {
+            where.append(" AND assignmentbuilding.staffid = ").append(staffId);
         }
-        where.append(" AND ").append(column).append(" LIKE :").append(parameterName).append(' ');
-        parameters.put(parameterName, "%" + value.trim() + "%");
-    }
 
-    private void addEquals(
-            StringBuilder where,
-            Map<String, Object> parameters,
-            String parameterName,
-            String column,
-            Number value
-    ) {
-        if (value == null) {
-            return;
+        Long rentAreaFrom = buildingSearchBuilder.getAreaFrom();
+        Long rentAreaTo = buildingSearchBuilder.getAreaTo();
+        if(rentAreaFrom != null || rentAreaTo != null) {
+            where.append(" AND EXISTS  (SELECT * FROM rentarea WHERE b.id = rentarea.buildingid ");
+            if(rentAreaFrom != null) {
+                where.append(" AND rentarea.value >= ").append(rentAreaFrom);
+            }
+            if(rentAreaTo != null) {
+                where.append(" AND rentarea.value <= ").append(rentAreaTo);
+            }
+            where.append(") ");
         }
-        where.append(" AND ").append(column).append(" = :").append(parameterName).append(' ');
-        parameters.put(parameterName, value);
-    }
 
-    private void bind(Query query, Map<String, Object> parameters) {
-        parameters.forEach(query::setParameter);
+
+        Long rentPriceFrom = buildingSearchBuilder.getRentPriceFrom();
+        Long rentPriceTo = buildingSearchBuilder.getRentPriceTo();
+        if(rentPriceFrom != null) {
+            where.append(" AND b.rentprice >= ").append(rentPriceFrom);
+        }
+        if(rentPriceTo != null) {
+            where.append(" AND b.rentprice <= ").append(rentPriceTo);
+        }
+
+        if(buildingSearchBuilder.getTypeCode() != null && !buildingSearchBuilder.getTypeCode().isEmpty()) {
+            where.append(" AND (");
+
+            where.append(buildingSearchBuilder.getTypeCode()
+                    .stream()
+                    .map(type -> "b.type LIKE '%" + type + "%'")
+                    .collect(Collectors.joining(" OR "))).append(") ");
+        }
+        if (buildingSearchBuilder.getDistrict() != null
+                && !buildingSearchBuilder.getDistrict().isBlank()) {
+            where.append(" AND b.district = '")
+                    .append(buildingSearchBuilder.getDistrict())
+                    .append("'");
+        }
+
+    }
+    @Override
+    public PaginationResult<BuildingEntity> findALlBuilding(BuildingSearchBuilder buildingSearchBuilder, int page, int maxPageItem, int maxNavigationPage) {
+        StringBuilder sql = new StringBuilder("SELECT DISTINCT b.* FROM building b ");
+        joinTable(buildingSearchBuilder, sql);
+        StringBuilder where = new StringBuilder(" Where 1 = 1 ");
+        queryNormal(buildingSearchBuilder, where);
+        querySpecial(buildingSearchBuilder, where);
+        sql.append(where);
+        Query query = entityManager.createNativeQuery(sql.toString(), BuildingEntity.class);
+        return new PaginationResult<>(query, query.getResultList().size(), page, maxPageItem, maxNavigationPage);
     }
 }
