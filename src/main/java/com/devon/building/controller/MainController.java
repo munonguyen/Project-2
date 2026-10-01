@@ -8,17 +8,16 @@ import com.devon.building.model.CustomerInfo;
 import com.devon.building.model.ProductInfo;
 import com.devon.building.model.dto.CustomerDTO;
 import com.devon.building.pagination.PaginationResult;
-import com.devon.building.repository.impl.OrderRepository;
-import com.devon.building.repository.impl.ProductRepository;
 import com.devon.building.service.CustomerService;
+import com.devon.building.service.StorefrontService;
 import com.devon.building.utils.Utils;
 import com.devon.building.validator.CustomerFormValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -29,41 +28,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 
 @Controller
-@Transactional
+@RequiredArgsConstructor
 public class MainController {
 
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private CustomerFormValidator customerFormValidator;
+    private final CustomerService customerService;
+    private final StorefrontService storefrontService;
+    private final CustomerFormValidator customerFormValidator;
 
     @InitBinder
-    public void myInitBinder(WebDataBinder dataBinder) {
+    public void initBinder(WebDataBinder dataBinder) {
         Object target = dataBinder.getTarget();
-        if (target == null) {
-            return;
-        }
-        System.out.println("Target=" + target);
-
-        // Case update quantity in cart
-        // (@ModelAttribute("cartForm") @Validated CartInfo cartForm)
-        if (target.getClass() == CartInfo.class) {
-
-        }
-
-        // Case save customer information.
-        // (@ModelAttribute @Validated CustomerInfo customerForm)
-        else if (target.getClass() == CustomerForm.class) {
+        if (target instanceof CustomerForm) {
             dataBinder.setValidator(customerFormValidator);
         }
-
     }
 
     @RequestMapping("/403")
@@ -87,177 +64,127 @@ public class MainController {
         return "register";
     }
 
-    // Building List
-    @RequestMapping({ "/productList" })
-    public String listProductHandler(Model model, //
+    @RequestMapping("/productList")
+    public String listProductHandler(
+            Model model,
             @RequestParam(value = "name", defaultValue = "") String likeName,
             @RequestParam(value = "page", defaultValue = "1") int page) {
         final int maxResult = 8;
         final int maxNavigationPage = 10;
 
-        PaginationResult<ProductInfo> result = productRepository.queryProducts(page, //
-                maxResult, maxNavigationPage, likeName);
-
+        PaginationResult<ProductInfo> result = storefrontService.searchProducts(
+                page, maxResult, maxNavigationPage, likeName);
         model.addAttribute("paginationProducts", result);
         return "productList";
     }
 
-    @RequestMapping({ "/buyProduct" })
-    public String listProductHandler(HttpServletRequest request, Model model, //
-            @RequestParam(value = "id", defaultValue = "") Long id) {
-
-        BuildingEntity building = null;
-        if (id != null) {
-            building = productRepository.findProduct(id);
-        }
+    @RequestMapping("/buyProduct")
+    public String buyProduct(
+            HttpServletRequest request,
+            @RequestParam(value = "id", required = false) Long id) {
+        BuildingEntity building = storefrontService.findProduct(id);
         if (building != null) {
-
-            //
             CartInfo cartInfo = Utils.getCartInSession(request);
-
-            ProductInfo productInfo = new ProductInfo(building);
-
-            cartInfo.addProduct(productInfo, 1);
+            cartInfo.addProduct(new ProductInfo(building), 1);
         }
-
         return "redirect:/shoppingCart";
     }
 
-    @RequestMapping({ "/shoppingCartRemoveProduct" })
-    public String removeProductHandler(HttpServletRequest request, Model model, //
-            @RequestParam(value = "id", defaultValue = "") Long id) {
-        BuildingEntity building = null;
-        if (id != null) {
-            building = productRepository.findProduct(id);
-        }
+    @RequestMapping("/shoppingCartRemoveProduct")
+    public String removeProduct(
+            HttpServletRequest request,
+            @RequestParam(value = "id", required = false) Long id) {
+        BuildingEntity building = storefrontService.findProduct(id);
         if (building != null) {
-
             CartInfo cartInfo = Utils.getCartInSession(request);
-
-            ProductInfo productInfo = new ProductInfo(building);
-
-            cartInfo.removeProduct(productInfo);
-
+            cartInfo.removeProduct(new ProductInfo(building));
         }
-
         return "redirect:/shoppingCart";
     }
 
-    // POST: Update quantity for product in cart
-    @RequestMapping(value = { "/shoppingCart" }, method = RequestMethod.POST)
-    public String shoppingCartUpdateQty(HttpServletRequest request, //
-            Model model, //
+    @PostMapping("/shoppingCart")
+    public String shoppingCartUpdateQty(
+            HttpServletRequest request,
             @ModelAttribute("cartForm") CartInfo cartForm) {
-
-        CartInfo cartInfo = Utils.getCartInSession(request);
-        cartInfo.updateQuantity(cartForm);
-
+        Utils.getCartInSession(request).updateQuantity(cartForm);
         return "redirect:/shoppingCart";
     }
 
-    // GET: Show cart.
-    @RequestMapping(value = { "/shoppingCart" }, method = RequestMethod.GET)
+    @GetMapping("/shoppingCart")
     public String shoppingCartHandler(HttpServletRequest request, Model model) {
-        CartInfo myCart = Utils.getCartInSession(request);
         CartInfo cartInfo = Utils.getCartInSession(request);
-
-        model.addAttribute("cartForm", myCart);
+        model.addAttribute("cartForm", cartInfo);
         model.addAttribute("myCart", cartInfo);
         return "shoppingCart";
     }
 
-    // GET: Enter customer information.
-    @RequestMapping(value = { "/shoppingCartCustomer" }, method = RequestMethod.GET)
+    @GetMapping("/shoppingCartCustomer")
     public String shoppingCartCustomerForm(HttpServletRequest request, Model model) {
-
         CartInfo cartInfo = Utils.getCartInSession(request);
-
         if (cartInfo.isEmpty()) {
-
             return "redirect:/shoppingCart";
         }
+
         CustomerInfo customerInfo = cartInfo.getCustomerInfo();
-
-        CustomerForm customerForm = new CustomerForm(customerInfo);
-
-        model.addAttribute("customerForm", customerForm);
-
+        model.addAttribute("customerForm", new CustomerForm(customerInfo));
         return "shoppingCartCustomer";
     }
 
-    // POST: Save customer information.
-    @RequestMapping(value = { "/shoppingCartCustomer" }, method = RequestMethod.POST)
-    public String shoppingCartCustomerSave(HttpServletRequest request, //
-            Model model, //
-            @ModelAttribute("customerForm") @Validated CustomerForm customerForm, //
-            BindingResult result, //
-            final RedirectAttributes redirectAttributes) {
-
+    @PostMapping("/shoppingCartCustomer")
+    public String shoppingCartCustomerSave(
+            HttpServletRequest request,
+            @ModelAttribute("customerForm") @Validated CustomerForm customerForm,
+            BindingResult result,
+            RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             customerForm.setValid(false);
-            // Forward to reenter customer info.
             return "shoppingCartCustomer";
         }
 
         customerForm.setValid(true);
         CartInfo cartInfo = Utils.getCartInSession(request);
-        CustomerInfo customerInfo = new CustomerInfo(customerForm);
-        cartInfo.setCustomerInfo(customerInfo);
-
+        cartInfo.setCustomerInfo(new CustomerInfo(customerForm));
         return "redirect:/shoppingCartConfirmation";
     }
 
-    // GET: Show information to confirm.
-    @RequestMapping(value = { "/shoppingCartConfirmation" }, method = RequestMethod.GET)
+    @GetMapping("/shoppingCartConfirmation")
     public String shoppingCartConfirmationReview(HttpServletRequest request, Model model) {
         CartInfo cartInfo = Utils.getCartInSession(request);
-
         if (cartInfo == null || cartInfo.isEmpty()) {
-
             return "redirect:/shoppingCart";
-        } else if (!cartInfo.isValidCustomer()) {
-
+        }
+        if (!cartInfo.isValidCustomer()) {
             return "redirect:/shoppingCartCustomer";
         }
-        model.addAttribute("myCart", cartInfo);
 
+        model.addAttribute("myCart", cartInfo);
         return "shoppingCartConfirmation";
     }
 
-    // POST: Submit Cart (Save)
-    @RequestMapping(value = { "/shoppingCartConfirmation" }, method = RequestMethod.POST)
-
-    public String shoppingCartConfirmationSave(HttpServletRequest request, Model model) {
+    @PostMapping("/shoppingCartConfirmation")
+    public String shoppingCartConfirmationSave(HttpServletRequest request) {
         CartInfo cartInfo = Utils.getCartInSession(request);
-
         if (cartInfo.isEmpty()) {
-
             return "redirect:/shoppingCart";
-        } else if (!cartInfo.isValidCustomer()) {
-
+        }
+        if (!cartInfo.isValidCustomer()) {
             return "redirect:/shoppingCartCustomer";
         }
-        try {
-            orderRepository.saveOrder(cartInfo);
-        } catch (Exception e) {
 
+        try {
+            storefrontService.placeOrder(cartInfo);
+        } catch (RuntimeException e) {
             return "shoppingCartConfirmation";
         }
 
-        // Remove Cart from Session.
         Utils.removeCartInSession(request);
-
-        // Store last cart.
         Utils.storeLastOrderedCartInSession(request, cartInfo);
-
         return "redirect:/shoppingCartFinalize";
     }
 
-    @RequestMapping(value = { "/shoppingCartFinalize" }, method = RequestMethod.GET)
+    @GetMapping("/shoppingCartFinalize")
     public String shoppingCartFinalize(HttpServletRequest request, Model model) {
-
         CartInfo lastOrderedCart = Utils.getLastOrderedCartInSession(request);
-
         if (lastOrderedCart == null) {
             return "redirect:/shoppingCart";
         }
@@ -265,16 +192,13 @@ public class MainController {
         return "shoppingCartFinalize";
     }
 
-    @RequestMapping(value = { "/productImage" }, method = RequestMethod.GET)
-    public void productImage(HttpServletRequest request, HttpServletResponse response, Model model,
+    @GetMapping("/productImage")
+    public void productImage(
+            HttpServletResponse response,
             @RequestParam("id") Long id) throws IOException {
-        BuildingEntity building = null;
-        if (id != null) {
-            building = this.productRepository.findProduct(id);
-        }
+        BuildingEntity building = storefrontService.findProduct(id);
         if (building != null && building.getImage() != null) {
-            response.setContentType("image/jpeg");
-            response.setContentType("image/png");
+            response.setContentType(MediaType.IMAGE_JPEG_VALUE);
             response.getOutputStream().write(building.getImage());
         }
         response.getOutputStream().close();
@@ -285,5 +209,4 @@ public class MainController {
     public Customer sendDemand(@RequestBody @Valid CustomerDTO customerDTO) {
         return customerService.sendDemand(customerDTO);
     }
-
 }
