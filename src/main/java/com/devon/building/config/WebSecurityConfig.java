@@ -7,6 +7,7 @@ import com.devon.building.service.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -51,11 +52,18 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.ignoringRequestMatchers(
-                        "/api/**",
-                        "/users/**",
-                        "/auth/**",
-                        "/contact"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers(request -> {
+                    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+                    String path = request.getRequestURI();
+                    boolean bearerRequest = authorization != null && authorization.startsWith("Bearer ");
+                    boolean statelessPublicEndpoint = path.startsWith("/auth/")
+                            || path.equals("/api/users/login")
+                            || path.equals("/api/users/register")
+                            || path.equals("/users/login")
+                            || path.equals("/users/register")
+                            || path.equals("/contact");
+                    return bearerRequest || statelessPublicEndpoint;
+                }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.POST,
