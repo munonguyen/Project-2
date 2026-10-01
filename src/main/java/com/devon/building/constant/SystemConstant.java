@@ -6,7 +6,6 @@ public class SystemConstant {
     public static final String ADMIN_HOME = "/admin/users/list";
     public static final String ALERT = "alert";
     public static final String MESSAGE_RESPONSE = "messageResponse";
-    public static final String PASSWORD_DEFAULT = "123456";
 
     // Dùng cho Authority đầy đủ trong database và Spring Security
     public static final String USER_ROLE = "ROLE_USER";
