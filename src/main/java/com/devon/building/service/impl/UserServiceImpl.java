@@ -123,7 +123,6 @@ public class UserServiceImpl implements UserService {
         if (userDTO.getFullName() != null && !userDTO.getFullName().isBlank()) {
             user.setFullName(userDTO.getFullName());
         }
-        user.setActive(true);
         try {
             if (userDTO.getBase64Image() != null && !userDTO.getBase64Image().isEmpty()) {
                 String base64String = userDTO.getBase64Image();
