@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
         user.setActive(true);
         user.setFullName(userDTO.getFullName());
         user.setEncrytedPassword(passwordEncoder.encode(initialUserPassword));
-        user.setUserRole(SystemConstant.MANAGER_ROLE);
+        user.setUserRole(validateRole(userDTO.getRoleCode()));
         if (userDTO.getFileData() != null) {
             try {
                 byte[] image = userDTO.getFileData().getBytes();
@@ -138,7 +138,7 @@ public class UserServiceImpl implements UserService {
                 throw new RuntimeException("Bạn không có quyền chỉnh sửa tài khoản của người khác!");
             }
         } else if (userDTO.getRoleCode() != null && !userDTO.getRoleCode().isBlank()) {
-            user.setUserRole(userDTO.getRoleCode());
+            user.setUserRole(validateRole(userDTO.getRoleCode()));
         }
 
         if (userDTO.getFullName() != null && !userDTO.getFullName().isBlank()) {
@@ -234,5 +234,14 @@ public class UserServiceImpl implements UserService {
         user.setCreatedBy(cleanUserName);
 
         return userRepository.save(user);
+    }
+
+    private String validateRole(String roleCode) {
+        if (SystemConstant.USER_ROLE.equals(roleCode)
+                || SystemConstant.STAFF_ROLE.equals(roleCode)
+                || SystemConstant.MANAGER_ROLE.equals(roleCode)) {
+            return roleCode;
+        }
+        throw new IllegalArgumentException("Invalid user role");
     }
 }
