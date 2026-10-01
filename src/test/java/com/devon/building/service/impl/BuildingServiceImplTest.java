@@ -2,6 +2,7 @@ package com.devon.building.service.impl;
 
 import com.devon.building.converter.BuildingConverter;
 import com.devon.building.entity.BuildingEntity;
+import com.devon.building.exception.InvalidRequestException;
 import com.devon.building.model.dto.BuildingDTO;
 import com.devon.building.repository.BuildingRepository;
 import com.devon.building.repository.UserRepository;
@@ -12,10 +13,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,5 +93,12 @@ class BuildingServiceImplTest {
         verify(buildingRepository).deleteAll(entities);
         assertEquals(0, first.getUser().size());
         assertEquals(0, second.getUser().size());
+    }
+
+    @Test
+    void deleteBuildingRejectsNullIdWithoutThrowingCollectionNpe() {
+        List<Long> ids = Arrays.asList(1L, null);
+
+        assertThrows(InvalidRequestException.class, () -> service.deleteBuilding(ids));
     }
 }
