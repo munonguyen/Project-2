@@ -51,7 +51,4 @@ public class UserRegisterDTO {
     @JsonProperty("google_account_id")
     @Builder.Default
     private Long googleAccountId = 0L;
-
-    @JsonProperty("role_id")
-    private Long roleId;
 }
