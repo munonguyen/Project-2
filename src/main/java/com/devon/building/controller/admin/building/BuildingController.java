@@ -13,52 +13,61 @@ import com.devon.building.service.UserService;
 import com.devon.building.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/admin/buildings")
 @RequiredArgsConstructor
 public class BuildingController {
 
-    private final UserService userService;
-    private final BuildingService buildingService;
     private static final String DISTRICT = "districts";
     private static final String RENT_TYPE = "rentTypes";
 
+    private final UserService userService;
+    private final BuildingService buildingService;
+
     @GetMapping("/list")
-    public ModelAndView getAllBuildings(@RequestParam(value = "page", defaultValue = "1") String pageStr, @ModelAttribute BuildingSearchRequest buildingSearchRequest){
+    public ModelAndView getAllBuildings(
+            @RequestParam(value = "page", defaultValue = "1") String pageStr,
+            @ModelAttribute BuildingSearchRequest buildingSearchRequest) {
         ModelAndView modelAndView = new ModelAndView("admin/building/buildingList");
 
-        if(SecurityUtils.getAuthorities().contains(SystemConstant.STAFF_ROLE)){
-            User user = userService.getUserInfo(SecurityUtils.getCurrentUsername());
-            buildingSearchRequest.setStaffId(user.getId());
+        if (SecurityUtils.getAuthorities().contains(SystemConstant.STAFF_ROLE)) {
+            User staff = userService.getUserInfo(SecurityUtils.getCurrentUsername());
+            if (staff != null) {
+                buildingSearchRequest.setStaffId(staff.getId());
+            }
         }
-        int page = 1;
-        try{
+
+        int page;
+        try {
             page = Integer.parseInt(pageStr);
-        }catch(Exception e){
-            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            page = 1;
         }
         buildingSearchRequest.setPage(page);
+
         modelAndView.addObject("staffs", userService.loadStaff());
         modelAndView.addObject(DISTRICT, District.getDistrictMap());
         modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
         modelAndView.addObject("buildingSearchRequest", buildingSearchRequest);
-        if(SecurityUtils.getAuthorities().contains(SystemConstant.STAFF_ROLE)){
-            User staff = userService.getUserInfo(SecurityUtils.getCurrentUsername());
-            buildingSearchRequest.setStaffId(staff.getId());
-        }
-        PaginationResult<BuildingSearchResponse> result = buildingService.findBuilding(buildingSearchRequest, buildingSearchRequest.getPage(), SystemConstant.MAX_PAGE_ITEM, SystemConstant.MAX_NAVIGATION_PAGE);
-        modelAndView.addObject("result", result);
 
+        PaginationResult<BuildingSearchResponse> result = buildingService.findBuilding(
+                buildingSearchRequest,
+                buildingSearchRequest.getPage(),
+                SystemConstant.MAX_PAGE_ITEM,
+                SystemConstant.MAX_NAVIGATION_PAGE);
+        modelAndView.addObject("result", result);
         return modelAndView;
     }
 
     @GetMapping("/edit")
-    public ModelAndView getEditBuildings(@ModelAttribute("buildingEdit") BuildingDTO buildingDTO){
+    public ModelAndView getEditBuildings() {
         ModelAndView modelAndView = new ModelAndView("admin/building/buildingEdit");
         modelAndView.addObject(DISTRICT, District.getDistrictMap());
         modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
@@ -67,10 +76,9 @@ public class BuildingController {
     }
 
     @GetMapping("/{id}/update")
-    public ModelAndView getUpdateBuilding(@PathVariable Long id){
+    public ModelAndView getUpdateBuilding(@PathVariable Long id) {
         ModelAndView modelAndView = new ModelAndView("admin/building/buildingEdit");
-        BuildingDTO buildingDTO = buildingService.findById(id);
-        modelAndView.addObject("building", buildingDTO);
+        modelAndView.addObject("building", buildingService.findById(id));
         modelAndView.addObject(DISTRICT, District.getDistrictMap());
         modelAndView.addObject(RENT_TYPE, RentType.getRentTypeMap());
         return modelAndView;
